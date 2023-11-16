@@ -1,7 +1,7 @@
 # bot.py
 import os
 import typing
-import time
+import asyncio
 
 import discord
 from discord import app_commands
@@ -34,6 +34,8 @@ async def on_ready():
     print(f'Logged in as {client.user} (ID: {client.user.id})')
     print("Loading commands...")
     await tree.sync(guild=activeGuild)
+    print("Starting loop...")
+    client.loop.create_task(blast())
     print("Loaded!")
 
 
@@ -123,14 +125,15 @@ async def pairings(interaction, team : typing.Optional[str]):
     await interaction.response.send_message(embed=embed)
 
 
+
 @tree.command(name="startblasts", description="Start tournament blasts.", guild=activeGuild)
 async def startBlasts(interaction):
     if not Pairings.isBlasting():
         await interaction.response.send_message('Started blasts. :mega:', ephemeral=True)
         Pairings.startBlasting()
-        blast()
     else:
         await interaction.response.send_message('Blasts already started! :nerd:', ephemeral=True)
+
 
 
 @tree.command(name="stopblasts", description="Stop tournament blasts.", guild=activeGuild)
@@ -141,10 +144,12 @@ async def stopBlasts(interaction):
 
 
 async def blast():
-    while(Pairings.isBlasting):
-        # TODO: fix this thing *****************************
-        print("Blasting!")
-        time.sleep(5)
+    while(True):
+        if Pairings.isBlasting():
+            # TODO: actually blast stuff
+            print("Blasting!")
+        await asyncio.sleep(2)
+
 
 
 def reverseCode(teamCode):
