@@ -74,7 +74,7 @@ Post the pairings from the most recent round for a specific team/partnership.
 
 If `team-code` is left blank, posts the pairings from the most recent round for all teams/parnerships.
 
-`team-code` refers to just the initials of the team code (i.e. excluding school).
+The team code refers to just the initials of the team code (i.e. excluding school).
 
 (Insert screenshot here)
 
