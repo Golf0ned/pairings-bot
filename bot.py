@@ -5,8 +5,9 @@ import typing
 import discord
 from discord import app_commands
 from dotenv import load_dotenv
+import pairings
 
-validRounds = ["1", "2", "3", "4", "5", "6", "7", "8", "triples", "doubles", "octos", "quarters", "semis", "finals"]
+
 
 # loads from dotenv
 load_dotenv()
@@ -17,7 +18,7 @@ intents = discord.Intents.all()
 client = discord.Client(intents=intents, activity=discord.Activity(type=discord.ActivityType.watching, name="pairings"))
 tree = app_commands.CommandTree(client)
 
-
+Pairings = pairings.PairingsManager()
 
 @client.event
 async def on_ready():
@@ -65,18 +66,20 @@ async def pairings(interaction, team : typing.Optional[str]):
     judges = ["Lee Quinn", "Nate Milton"]
     rooms = ["GRN 251/BR24", "TRB C115/BR66"]
 
+    # default value (all teams)
     if not team:
         embed = discord.Embed(title=f'Pairings (Round {roundNum})',
-                            url=f'https://www.tabroom.com/index/tourn/postings/index.mhtml?tourn_id={tournID}&round_id={roundID}',
+                            url=Pairings.getRoundURL(roundNum),
                             color=0x4E2A84)
         for i in range(2):
             val = f'{sides[i]} vs. {opponents[i]} | {judges[i]} | {rooms[i]}'
             embed.add_field(name=f'{school} {teams[i]}', value=val, inline=False)
         embed.set_footer(text="Good luck!")
 
+    # team code (specific team)
     else:
         embed = discord.Embed(title=f'Pairing for {school} {team} (Round {roundNum})',
-                            url=f'https://www.tabroom.com/index/tourn/postings/index.mhtml?tourn_id={tournID}&round_id={roundID}',
+                            url=Pairings.getRoundURL(roundNum),
                             color=0x4E2A84)
         try:
             index = teams.index(team)
@@ -94,6 +97,7 @@ async def pairings(interaction, team : typing.Optional[str]):
 
 # @tree.command(name="configure", guild=discord.Object(id=os.getenv(GUILD_ID)))
 # async def configureTournament(interaction, pairingsURL):
+
 def reverseCode(teamCode):
     # TODO: error for teams of 3
     return teamCode[::-1] if len(teamCode) == 2 else teamCode[2:4] + teamCode[0:2]
