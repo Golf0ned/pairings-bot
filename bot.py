@@ -23,7 +23,7 @@ roundID = 1036666
 
 
 intents = discord.Intents.all()
-client = discord.Client(intents=intents, activity=discord.Activity(type=discord.ActivityType.watching, name="pairings"))
+client = discord.Client(intents=intents, activity=discord.Activity(type=discord.ActivityType.watching, name="pairings  |  /help"))
 tree = app_commands.CommandTree(client)
 activeGuild = discord.Object(id=os.getenv(GUILD_ID))
 
@@ -49,13 +49,17 @@ async def pairingsHelp(interaction):
                 "/configureblasts <school> <channel-id>",
                 "/configuretournaments <tournament-id>",
                 "/pairings",
-                "/pairings <team-code>"]
+                "/pairings <team-code>",
+                "/startblasts",
+                "/stopblasts"]
     
     descriptions = ["Displays all commands for PairingsBot.",
                     "Sets the school to filter pairings by and the channel that blasts should be sent to.",
                     "Sets the tournament to blast pairings from.",
                     "Posts the pairings from the most recent round for all teams.",
-                    "Post the pairings from the most recent round for a specific team."]
+                    "Post the pairings from the most recent round for a specific team.",
+                    "Start tournament blasts.",
+                    "Stop tournament blasts."]
 
     embed = discord.Embed(title="Commands",
                           color=0x4E2A84)
@@ -70,18 +74,20 @@ async def pairingsHelp(interaction):
 @tree.command(name="configureblasts",
               description="Sets the school to filter pairings by and the channel that blasts should be sent to.",
               guild=activeGuild)
-async def configureBlasts(interaction, school : str, channelid : int):
+async def configureBlasts(interaction, school : str, channelid : str):
+    if not client.get_channel(int(Pairings.getBlastChannel())):
+        await interaction.response.send_message(f'{channelid} isn\'t a valid channel id. :smiling_face_with_tear:', ephemeral=True)
+        return
     Pairings.setSchool(school)
-    activeChannel = channelid
+    Pairings.setBlastChannel(channelid)
+    print(Pairings.getBlastChannel())
     await interaction.response.send_message('Channel and school configured! :sunglasses:', ephemeral=True)
 
 
 
 @tree.command(name="configuretournament", description="Sets the tournament to blast pairings from.", guild=activeGuild)
 async def configureTournament(interaction, pairingsurl : str):
-    await interaction.response.send_message(' :sunglasses:', ephemeral=True)
-    Pairings.startBlasting()
-    await blast()
+    await interaction.response.send_message('Tournament configured! :trophy:', ephemeral=True)
 
 
 
@@ -102,24 +108,24 @@ async def pairings(interaction, team : typing.Optional[str]):
                             color=0x4E2A84)
         for i in range(2):
             val = f'{sides[i]} vs. {opponents[i]} | {judges[i]} | {rooms[i]}'
-            embed.add_field(name=f'{Pairings.school} {teams[i]}', value=val, inline=False)
+            embed.add_field(name=f'{Pairings.getSchool()} {teams[i]}', value=val, inline=False)
         embed.set_footer(text="Good luck!")
 
     # team code (specific team)
     else:
-        embed = discord.Embed(title=f'Pairing for {Pairings.school} {team} (Round {roundNum})',
+        embed = discord.Embed(title=f'Pairing for {Pairings.getSchool()} {team.upper()} (Round {roundNum})',
                             url=Pairings.getRoundURL(roundNum),
                             color=0x4E2A84)
         try:
-            index = teams.index(team)
+            index = teams.index(team.upper())
         except:
             try:    
-                index = teams.index(reverseCode(team))
+                index = teams.index(reverseCode(team).upper())
             except:
                 await interaction.response.send_message(f'{team} isn\'t a valid team code :pensive:', ephemeral=True)
                 return
         val = f'{sides[index]} vs. {opponents[index]} | {judges[index]} | {rooms[index]}'
-        embed.add_field(name=f'{Pairings.school} {team}', value=val, inline=False)
+        embed.add_field(name=f'{Pairings.getSchool()} {team}', value=val, inline=False)
         embed.set_footer(text="Good luck!")
 
     await interaction.response.send_message(embed=embed)
@@ -128,11 +134,11 @@ async def pairings(interaction, team : typing.Optional[str]):
 
 @tree.command(name="startblasts", description="Start tournament blasts.", guild=activeGuild)
 async def startBlasts(interaction):
-    if not Pairings.isBlasting():
-        await interaction.response.send_message('Started blasts. :mega:', ephemeral=True)
-        Pairings.startBlasting()
-    else:
+    if Pairings.isBlasting():
         await interaction.response.send_message('Blasts already started! :nerd:', ephemeral=True)
+        return
+    Pairings.startBlasting()
+    await interaction.response.send_message('Started blasts. :mega:', ephemeral=True)
 
 
 
@@ -147,8 +153,9 @@ async def blast():
     while(True):
         if Pairings.isBlasting():
             # TODO: actually blast stuff
-            print("Blasting!")
-        await asyncio.sleep(2)
+            # TODO: error handling for invalid channel
+            await client.get_channel(int(Pairings.getBlastChannel())).send('Test blast')
+        await asyncio.sleep(5)
 
 
 
