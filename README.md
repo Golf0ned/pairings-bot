@@ -52,38 +52,45 @@ Sets the school to filter pairings by and the channel that blasts should be sent
 
 `school` should be identical to the name as displayed on Tabroom.
 
-With developer mode on in Discord, you can copy the channel ID by right clicking the channel and selecting the bottom selection.
+`channel-id` refers to the developer ID of the channel blasts should be sent to. With developer mode on in Discord, you can copy the channel ID by right clicking the channel and selecting the bottom selection.
 
-### Configure Info [NYI]
+### Configure Tournament [NYI]
 ```
 /configuretournament <tournament-id>
 ```
 
 Sets the tournament to blast pairings from.
 
-`tournament-id` is the aptly labelled bit of the tournament URL.
+`tournament-id` is the aptly labelled portion of the tournament URL.
 
 (Insert screenshot here)
 
-### Pairings (All)
+### Pairings
 ```
-/pairings
-```
-
-Posts the pairings from the most recent round for all teams/parnerships.
-
-(Insert screenshot here)
-
-### Pairings (Team)
-```
-/pairings <team-code>
+/pairings <optional team-code>
 ```
 
 Post the pairings from the most recent round for a specific team/partnership.
 
-Team code refers to just the initials, excluding school.
+If `team-code` is left blank, posts the pairings from the most recent round for all teams/parnerships.
+
+`team-code` refers to just the initials of the team code (i.e. excluding school).
 
 (Insert screenshot here)
+
+### Start Blasts
+```
+/startblasts
+```
+
+Starts tournament blasts. Checks every 5 seconds.
+
+### Stop Blasts
+```
+/stopblasts
+```
+
+Stops tournament blasts.
 
 ## Getting Started
 Will be up ASAP!
