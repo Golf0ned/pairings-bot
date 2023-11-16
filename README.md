@@ -43,7 +43,7 @@ pfft you thought i had time to implement this. will do once i write more stuff s
 
 Self-explanatory. Displays all commands.
 
-### Configure Blasts
+### Configure Blasts [NYI]
 ```
 /configureblasts <channel-id>
 ```
@@ -52,7 +52,7 @@ Sets the channel that blasts should be sent to.
 
 With developer mode on in Discord, you can copy the channel ID by right clicking the channel and selecting the bottom selection.
 
-### Configure Info
+### Configure Info [NYI]
 ```
 /configuretournament <school> <tournament-id>
 ```
