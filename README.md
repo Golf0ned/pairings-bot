@@ -36,12 +36,32 @@ pfft you thought i had time to implement this. will do once i write more stuff s
 
 ## Features & Commands
 
-### Configure
+## Help
 ```
-/configure <school> <tournament>
+/help
+```
+
+Self-explanatory. Displays all commands.
+
+### Configure Blasts
+```
+/configureblasts <channel-id>
+```
+
+Sets the channel that blasts should be sent to.
+
+With developer mode on in Discord, you can copy the channel ID by right clicking the channel and selecting the bottom selection.
+
+### Configure Info
+```
+/configuretournament <school> <tournament-id>
 ```
 
 Sets the school to filter pairings by and the tournament to look at.
+
+`school` should be identical to the name as displayed on Tabroom.
+
+`tournament-id` is the aptly labelled bit of the tournament URL.
 
 (Insert screenshot here)
 
