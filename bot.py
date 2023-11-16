@@ -15,15 +15,16 @@ load_dotenv()
 TOKEN = 'DISCORD_TOKEN'
 GUILD_ID = 'GUILD_ID'
 
-activeChannel = 1059975075790589994
 Pairings = pairings.PairingsManager()
 Pairings.setSchool("Northwestern")
 Pairings.setTournament(28074)
 roundID = 1036666
 
 
-intents = discord.Intents.all()
-client = discord.Client(intents=intents, activity=discord.Activity(type=discord.ActivityType.watching, name="pairings  |  /help"))
+client = discord.Client(intents=discord.Intents.all(),
+                        status=discord.Status.idle,
+                        activity=discord.Activity(type=discord.ActivityType.watching,
+                                                  name="pairings  |  /help"))
 tree = app_commands.CommandTree(client)
 activeGuild = discord.Object(id=os.getenv(GUILD_ID))
 
@@ -35,7 +36,7 @@ async def on_ready():
     print("Loading commands...")
     await tree.sync(guild=activeGuild)
     print("Starting loop...")
-    client.loop.create_task(blast())
+    client.loop.create_task(blast(5))
     print("Loaded!")
 
 
@@ -75,9 +76,12 @@ async def pairingsHelp(interaction):
               description="Sets the school to filter pairings by and the channel that blasts should be sent to.",
               guild=activeGuild)
 async def configureBlasts(interaction, school : str, channelid : str):
-    if not client.get_channel(int(Pairings.getBlastChannel())):
+    try:
+        if not client.get_channel(int(Pairings.getBlastChannel())):
+            raise Exception()
+    except:
         await interaction.response.send_message(f'{channelid} isn\'t a valid channel id. :smiling_face_with_tear:', ephemeral=True)
-        return
+        
     Pairings.setSchool(school)
     Pairings.setBlastChannel(channelid)
     print(Pairings.getBlastChannel())
@@ -124,6 +128,7 @@ async def pairings(interaction, team : typing.Optional[str]):
             except:
                 await interaction.response.send_message(f'{team} isn\'t a valid team code :pensive:', ephemeral=True)
                 return
+            
         val = f'{sides[index]} vs. {opponents[index]} | {judges[index]} | {rooms[index]}'
         embed.add_field(name=f'{Pairings.getSchool()} {team}', value=val, inline=False)
         embed.set_footer(text="Good luck!")
@@ -137,7 +142,14 @@ async def startBlasts(interaction):
     if Pairings.isBlasting():
         await interaction.response.send_message('Blasts already started! :nerd:', ephemeral=True)
         return
+    try:
+        if not (client.get_channel(int(Pairings.getBlastChannel()))):
+            raise Exception()
+    except:
+        await interaction.response.send_message('You haven\'t set a valid channel id! :grin:', ephemeral=True)
+        return
     Pairings.startBlasting()
+    await client.change_presence(status=discord.Status.idle)
     await interaction.response.send_message('Started blasts. :mega:', ephemeral=True)
 
 
@@ -145,17 +157,18 @@ async def startBlasts(interaction):
 @tree.command(name="stopblasts", description="Stop tournament blasts.", guild=activeGuild)
 async def stopBlasts(interaction):
     await interaction.response.send_message('Stopped blasts. :mute:', ephemeral=True)
+    await client.change_presence(status=discord.Status.online)
     Pairings.stopBlasting()
 
 
 
-async def blast():
+async def blast(interval):
     while(True):
         if Pairings.isBlasting():
             # TODO: actually blast stuff
             # TODO: error handling for invalid channel
             await client.get_channel(int(Pairings.getBlastChannel())).send('Test blast')
-        await asyncio.sleep(5)
+        await asyncio.sleep(interval)
 
 
 
