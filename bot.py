@@ -1,6 +1,7 @@
 # bot.py
 import os
 import typing
+import time
 
 import discord
 from discord import app_commands
@@ -14,33 +15,43 @@ load_dotenv()
 TOKEN = 'DISCORD_TOKEN'
 GUILD_ID = 'GUILD_ID'
 
+activeChannel = 1059975075790589994
+Pairings = pairings.PairingsManager()
+Pairings.setSchool("Northwestern")
+Pairings.setTournament(28074)
+roundID = 1036666
+
+
 intents = discord.Intents.all()
 client = discord.Client(intents=intents, activity=discord.Activity(type=discord.ActivityType.watching, name="pairings"))
 tree = app_commands.CommandTree(client)
+activeGuild = discord.Object(id=os.getenv(GUILD_ID))
 
-Pairings = pairings.PairingsManager()
+
 
 @client.event
 async def on_ready():
     print(f'Logged in as {client.user} (ID: {client.user.id})')
     print("Loading commands...")
-    await tree.sync(guild=discord.Object(id=os.getenv(GUILD_ID)))
+    await tree.sync(guild=activeGuild)
     print("Loaded!")
 
 
 
-@tree.command(name="help", description="Displays all commands for PairingsBot.", guild=discord.Object(id=os.getenv(GUILD_ID)))
+@tree.command(name="help",
+              description="Displays all commands for PairingsBot.",
+              guild=discord.Object(id=os.getenv(GUILD_ID)))
 async def pairingsHelp(interaction):
     
     commands = ["/help",
-                "/configureblasts <channel-id>",
-                "/configuretournaments <school> <tournament-id>",
+                "/configureblasts <school> <channel-id>",
+                "/configuretournaments <tournament-id>",
                 "/pairings",
                 "/pairings <team-code>"]
     
     descriptions = ["Displays all commands for PairingsBot.",
-                    "Sets the channel that blasts should be sent to.",
-                    "Sets the school to filter pairings by and the tournament to look at.",
+                    "Sets the school to filter pairings by and the channel that blasts should be sent to.",
+                    "Sets the tournament to blast pairings from.",
                     "Posts the pairings from the most recent round for all teams.",
                     "Post the pairings from the most recent round for a specific team."]
 
@@ -54,12 +65,28 @@ async def pairingsHelp(interaction):
 
 
 
-@tree.command(name="pairings", description="Post the pairings from the most recent round (for a specific team, if specified).", guild=discord.Object(id=os.getenv(GUILD_ID)))
+@tree.command(name="configureblasts",
+              description="Sets the school to filter pairings by and the channel that blasts should be sent to.",
+              guild=activeGuild)
+async def configureBlasts(interaction, school : str, channelid : int):
+    Pairings.setSchool(school)
+    activeChannel = channelid
+    await interaction.response.send_message('Channel and school configured! :sunglasses:', ephemeral=True)
+
+
+
+@tree.command(name="configuretournament", description="Sets the tournament to blast pairings from.", guild=activeGuild)
+async def configureTournament(interaction, pairingsurl : str):
+    await interaction.response.send_message(' :sunglasses:', ephemeral=True)
+    Pairings.startBlasting()
+    await blast()
+
+
+
+@tree.command(name="pairings", description="Post the pairings from the most recent round (for a specific team, if specified).", guild=activeGuild)
 async def pairings(interaction, team : typing.Optional[str]):
     roundNum = 6
-    tournID = 28074
-    roundID = 1036666
-    school = "Northwestern"
+
     teams = ["DC", "LA"]
     sides = ["Aff", "Neg"]
     opponents = ["UC Berkeley FT", "Michigan DW"]
@@ -73,12 +100,12 @@ async def pairings(interaction, team : typing.Optional[str]):
                             color=0x4E2A84)
         for i in range(2):
             val = f'{sides[i]} vs. {opponents[i]} | {judges[i]} | {rooms[i]}'
-            embed.add_field(name=f'{school} {teams[i]}', value=val, inline=False)
+            embed.add_field(name=f'{Pairings.school} {teams[i]}', value=val, inline=False)
         embed.set_footer(text="Good luck!")
 
     # team code (specific team)
     else:
-        embed = discord.Embed(title=f'Pairing for {school} {team} (Round {roundNum})',
+        embed = discord.Embed(title=f'Pairing for {Pairings.school} {team} (Round {roundNum})',
                             url=Pairings.getRoundURL(roundNum),
                             color=0x4E2A84)
         try:
@@ -87,16 +114,38 @@ async def pairings(interaction, team : typing.Optional[str]):
             try:    
                 index = teams.index(reverseCode(team))
             except:
-                await interaction.response.send_message("That wasn't a valid team code :pensive:", ephemeral=True)
+                await interaction.response.send_message(f'{team} isn\'t a valid team code :pensive:', ephemeral=True)
                 return
         val = f'{sides[index]} vs. {opponents[index]} | {judges[index]} | {rooms[index]}'
-        embed.add_field(name=f'{school} {team}', value=val, inline=False)
+        embed.add_field(name=f'{Pairings.school} {team}', value=val, inline=False)
         embed.set_footer(text="Good luck!")
 
     await interaction.response.send_message(embed=embed)
 
-# @tree.command(name="configure", guild=discord.Object(id=os.getenv(GUILD_ID)))
-# async def configureTournament(interaction, pairingsURL):
+
+@tree.command(name="startblasts", description="Start tournament blasts.", guild=activeGuild)
+async def startBlasts(interaction):
+    if not Pairings.isBlasting():
+        await interaction.response.send_message('Started blasts. :mega:', ephemeral=True)
+        Pairings.startBlasting()
+        blast()
+    else:
+        await interaction.response.send_message('Blasts already started! :nerd:', ephemeral=True)
+
+
+@tree.command(name="stopblasts", description="Stop tournament blasts.", guild=activeGuild)
+async def stopBlasts(interaction):
+    await interaction.response.send_message('Stopped blasts. :mute:', ephemeral=True)
+    Pairings.stopBlasting()
+
+
+
+async def blast():
+    while(Pairings.isBlasting):
+        # TODO: fix this thing *****************************
+        print("Blasting!")
+        time.sleep(5)
+
 
 def reverseCode(teamCode):
     # TODO: error for teams of 3
