@@ -45,21 +45,21 @@ Self-explanatory. Displays all commands.
 
 ### Configure Blasts [NYI]
 ```
-/configureblasts <channel-id>
+/configureblasts <school> <channel-id>
 ```
 
-Sets the channel that blasts should be sent to.
+Sets the school to filter pairings by and the channel that blasts should be sent to.
+
+`school` should be identical to the name as displayed on Tabroom.
 
 With developer mode on in Discord, you can copy the channel ID by right clicking the channel and selecting the bottom selection.
 
 ### Configure Info [NYI]
 ```
-/configuretournament <school> <tournament-id>
+/configuretournament <tournament-id>
 ```
 
-Sets the school to filter pairings by and the tournament to look at.
-
-`school` should be identical to the name as displayed on Tabroom.
+Sets the tournament to blast pairings from.
 
 `tournament-id` is the aptly labelled bit of the tournament URL.
 
