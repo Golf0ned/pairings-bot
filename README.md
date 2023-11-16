@@ -67,7 +67,7 @@ Sets the school to filter pairings by and the tournament to look at.
 
 ### Pairings (All)
 ```
-/pairings <round-number>
+/pairings
 ```
 
 Posts the pairings from the most recent round for all teams/parnerships.
@@ -76,7 +76,7 @@ Posts the pairings from the most recent round for all teams/parnerships.
 
 ### Pairings (Team)
 ```
-/pairings <round-number> <team-code>
+/pairings <team-code>
 ```
 
 Post the pairings from the most recent round for a specific team/partnership.
