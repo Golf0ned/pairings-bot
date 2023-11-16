@@ -36,7 +36,7 @@ pfft you thought i had time to implement this. will do once i write more stuff s
 
 ## Features & Commands
 
-## Help
+### Help
 ```
 /help
 ```
@@ -67,7 +67,7 @@ Sets the school to filter pairings by and the tournament to look at.
 
 ### Pairings (All)
 ```
-/pairings <round>
+/pairings <round-number>
 ```
 
 Posts the pairings from the most recent round for all teams/parnerships.
@@ -76,10 +76,12 @@ Posts the pairings from the most recent round for all teams/parnerships.
 
 ### Pairings (Team)
 ```
-/pairings <round> <team>
+/pairings <round-number> <team-code>
 ```
 
 Post the pairings from the most recent round for a specific team/partnership.
+
+Team code refers to just the initials, excluding school.
 
 (Insert screenshot here)
 
