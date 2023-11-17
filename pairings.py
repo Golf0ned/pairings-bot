@@ -4,13 +4,13 @@ import tournament
 class PairingsManager():
 
     def __init__(self):
-        self.__school = ""
+        self.__configured = False
 
+        self.__school = ''
+        self.__blastChannel = ''
         self.__blasting = False
-        self.__blastChannel = ""
 
-        self.tournament = None
-
+        self.__tournament = None
 
     def setSchool(self, school : str): self.__school = school
     def getSchool(self): return self.__school
@@ -25,12 +25,10 @@ class PairingsManager():
     def getBlastChannel(self): return self.__blastChannel
 
 
-    def initTournament(self, id : int): 
-        if id < 0:
-            # TODO: error checking for id >= 0
-            pass
+    def initTournament(self, id : str):
         self.__tournament = tournament.TournamentManager(self.__school, id)
 
-
-    def getTournamentURL(self): return tournament.getTournamentURL()
-    def getRoundURL(self, roundID): return f'https://www.tabroom.com/index/tourn/postings/index.mhtml?tourn_id={self.__tournamentID}&round_id={roundID}'
+    
+    def getTournamentID(self): return self.__tournament.getTournamentID()
+    def getTournamentName(self): return self.__tournament.getTournamentName()
+    def getTournamentTeams(self): return self.__tournament.getTournamentTeams()

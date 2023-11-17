@@ -5,15 +5,21 @@ import requests
 
 def getPairingsURL(tournamentID): return f'https://www.tabroom.com/index/tourn/postings/index.mhtml?tourn_id={tournamentID}'
 def getRoundURL(tournamentID, roundID): return f'https://www.tabroom.com/index/tourn/postings/index.mhtml?tourn_id={tournamentID}&round_id={roundID}'
-
+def isValidTournament(tournamentID) : return True
 
 class TournamentManager():
 
     def __init__(self, school, tournamentID):
         self.__school = school
         self.__tournamentID = tournamentID
+        self.__name = ""
+        self.__teams = []
 
-        parser = TournamentParser()
+        parser = RoundParser()
+
+    def getTournamentID(self): return self.__tournamentID
+    def getTournamentName(self): return self.__name
+    def getTournamentTeams(self): return self.__teams
 
     async def checkRoundOne(interval):
         roundOneOut = False
@@ -23,7 +29,7 @@ class TournamentManager():
 
 
 
-class TournamentParser():
+class RoundParser():
 
     REGEXTOROUND = {"1" : "1",
                    "2" : "2",
@@ -45,7 +51,7 @@ class TournamentParser():
     
     def parseRound(self, round):
         
-        round = TournamentParser.parseRoundNumber(round)
+        round = RoundParser.parseRoundNumber(round)
         if round == "1":
             # tournamentName = 
             # teams = 
@@ -60,5 +66,5 @@ class TournamentParser():
         regex = re.findall('(\\d+)|(d)|(oct)|(q)|(tr)|(sem)|(fin)', round.split(' ')[-1].lower())
         if not regex:
             raise Exception()
-        return TournamentParser.REGEXTOROUND[regex[0]]
+        return RoundParser.REGEXTOROUND[regex[0]]
         
