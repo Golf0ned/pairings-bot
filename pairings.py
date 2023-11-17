@@ -12,12 +12,11 @@ class PairingsManager():
 
     def initTournament(self, id : str):
         self.__tournament = tournament.TournamentManager(self.__school, id)
-        self.__tournament.checkFirstRound()
     
     def hasTournament(self): 
         return True if self.__tournament else False
     def getTournamentID(self): return self.__tournament.getTournamentID()
-    def getCurRound(self): return self.__tournament.getRound()
+    def getRoundNumber(self): return self.__tournament.getRoundNumber()
 
     def setSchool(self, school : str): self.__school = school
     def getSchool(self): return self.__school
@@ -38,9 +37,16 @@ class PairingsManager():
 
 
 
-    def checkForRound():
-        pass
+    def checkForRound(self):
+        if self.__tournament.updateRound():
+            self.__hasBlast = True
 
 
-    def getRoundInfo():
-        pass
+    def getRoundInfo(self):
+        data = self.__tournament.getRound()
+
+        res = [self.__tournament.getTeams()]
+        for row in data:
+            res.append(row)
+        
+        return res

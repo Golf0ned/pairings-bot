@@ -3,6 +3,8 @@ import asyncio
 import re
 import requests
 
+TESTING = True
+
 REGEXTOROUND = {"1" : "1",
                 "2" : "2",
                 "3" : "3",
@@ -33,10 +35,26 @@ class TournamentManager():
         self.__round = None
         parser = RoundParser()
 
+        if TESTING:
+            self.__school = "Northwestern"
+            self.__round = "6"
+            self.__teams = ["DC", "LA"]
+            self.__tournamentID = 28074
+
     def getTournamentID(self): return self.__tournamentID
     def getTournamentName(self): return self.__name
     def getTournamentTeams(self): return self.__teams
-    def getCurRound(self): return self.__round
+    def getRoundNumber(self): return self.__round
+
+    def updateRound(self):
+        pass
+
+    def getRound(self):
+        if TESTING:
+            return[["Aff", "Neg"],
+                   ["UC Berkeley FT", "Michigan DW"],
+                   ["Lee Quinn", "Nate Milton"],
+                   ["GRN 251/BR24", "TRB C115/BR66"]]
 
     
 

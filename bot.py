@@ -130,23 +130,23 @@ async def stopBlasts(interaction):
 async def blastHandler(interval):
     while(True):
         if Pairings.isBlasting() and Pairings.hasTournament():
-            pairings.checkForRound()
+            Pairings.checkForRound()
             if Pairings.hasBlast():
                 await blast(None)
         await asyncio.sleep(interval)
 
 async def blast(team):
-    if not pairings.isConfigured():
+    if not Pairings.isConfigured():
         await client.response.send_message('Tournament isn\'t configured---use `/configuretournament` first. :disappointed_relieved:', ephemeral=True)
         return
     
-    roundInfo = pairings.getRoundInfo()
+    roundInfo = Pairings.getRoundInfo()
     if not roundInfo:
         await client.response.send_message('Round isn\'t out yet. :yawning_face:', ephemeral=True)
         return
     
     school = Pairings.getSchool()
-    roundNum = Pairings.getCurRound()
+    roundNum = Pairings.getRoundNumber()
     roundURL = tournament.getRoundURL(Pairings.getTournamentID(), roundNum)
     roundTeams = roundInfo[0]
     roundSides = roundInfo[1]
@@ -201,6 +201,8 @@ def reverseCode(teamCode):
     # TODO: error for teams of 3
     return teamCode[::-1] if len(teamCode) == 2 else teamCode[2:4] + teamCode[0:2]
 
-
+@tree.command(name="testBlast", description="Test for blast received.", guild=activeGuild)
+async def testBlast(interaction):
+    Pairings.__hasBlast = True
 
 client.run(os.getenv(TOKEN))
