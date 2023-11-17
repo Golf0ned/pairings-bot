@@ -1,11 +1,13 @@
 # bot.py
+import asyncio
+import datetime
 import os
 import typing
-import asyncio
 
 import discord
 from discord import app_commands
 from dotenv import load_dotenv
+
 import pairings
 
 
@@ -17,7 +19,7 @@ GUILD_ID = 'GUILD_ID'
 
 Pairings = pairings.PairingsManager()
 Pairings.setSchool("Northwestern")
-Pairings.setTournament(28074)
+Pairings.initTournament(28074)
 roundID = 1036666
 
 
@@ -46,27 +48,20 @@ async def on_ready():
               guild=discord.Object(id=os.getenv(GUILD_ID)))
 async def pairingsHelp(interaction):
     
-    commands = ["/help",
-                "/configureblasts <school> <channel-id>",
-                "/configuretournaments <tournament-id>",
-                "/pairings",
-                "/pairings <team-code>",
-                "/startblasts",
-                "/stopblasts"]
-    
-    descriptions = ["Displays all commands for PairingsBot.",
-                    "Sets the school to filter pairings by and the channel that blasts should be sent to.",
-                    "Sets the tournament to blast pairings from.",
-                    "Posts the pairings from the most recent round for all teams.",
-                    "Post the pairings from the most recent round for a specific team.",
-                    "Start tournament blasts.",
-                    "Stop tournament blasts."]
+    commands = [("/help",                                    "Displays all commands for PairingsBot."),
+                ("/configureblasts <school> <channel-id>",   "Sets the school to filter pairings by and the channel that blasts should be sent to."),
+                ("/configuretournaments <tournament-id>",    "Sets the tournament to blast pairings from."),
+                ("/pairings",                                "Posts the pairings from the most recent round for all teams."),
+                ("/pairings <team-code>",                    "Post the pairings from the most recent round for a specific team."),
+                ("/startblasts",                             "Start tournament blasts."),
+                ("/stopblasts",                              "Stop tournament blasts.")]
 
     embed = discord.Embed(title="Commands",
+                          timestamp=datetime.datetime.utcnow(),
                           color=0x4E2A84)
     for i in range(len(commands)):
-        embed.add_field(name=commands[i], value=descriptions[i], inline=False)
-    embed.set_footer(text="Made by Golf0ned")
+        embed.add_field(name=commands[i][0], value=commands[i][1], inline=False)
+    embed.set_footer(text="PairingsBot made by Golf0ned")
 
     await interaction.response.send_message(embed=embed)
 
@@ -76,15 +71,10 @@ async def pairingsHelp(interaction):
               description="Sets the school to filter pairings by and the channel that blasts should be sent to.",
               guild=activeGuild)
 async def configureBlasts(interaction, school : str, channelid : str):
-    try:
-        if not client.get_channel(int(Pairings.getBlastChannel())):
-            raise Exception()
-    except:
+    if not isValidChannel(channelid):
         await interaction.response.send_message(f'{channelid} isn\'t a valid channel id. :smiling_face_with_tear:', ephemeral=True)
-        
     Pairings.setSchool(school)
     Pairings.setBlastChannel(channelid)
-    print(Pairings.getBlastChannel())
     await interaction.response.send_message('Channel and school configured! :sunglasses:', ephemeral=True)
 
 
@@ -100,6 +90,7 @@ async def pairings(interaction, team : typing.Optional[str]):
     roundNum = 6
 
     teams = ["DC", "LA"]
+    
     sides = ["Aff", "Neg"]
     opponents = ["UC Berkeley FT", "Michigan DW"]
     judges = ["Lee Quinn", "Nate Milton"]
@@ -109,6 +100,7 @@ async def pairings(interaction, team : typing.Optional[str]):
     if not team:
         embed = discord.Embed(title=f'Pairings (Round {roundNum})',
                             url=Pairings.getRoundURL(roundNum),
+                            timestamp=datetime.datetime.utcnow(),
                             color=0x4E2A84)
         for i in range(2):
             val = f'{sides[i]} vs. {opponents[i]} | {judges[i]} | {rooms[i]}'
@@ -119,6 +111,7 @@ async def pairings(interaction, team : typing.Optional[str]):
     else:
         embed = discord.Embed(title=f'Pairing for {Pairings.getSchool()} {team.upper()} (Round {roundNum})',
                             url=Pairings.getRoundURL(roundNum),
+                            timestamp=datetime.datetime.utcnow(),
                             color=0x4E2A84)
         try:
             index = teams.index(team.upper())
@@ -142,22 +135,19 @@ async def startBlasts(interaction):
     if Pairings.isBlasting():
         await interaction.response.send_message('Blasts already started! :nerd:', ephemeral=True)
         return
-    try:
-        if not (client.get_channel(int(Pairings.getBlastChannel()))):
-            raise Exception()
-    except:
-        await interaction.response.send_message('You haven\'t set a valid channel id! :grin:', ephemeral=True)
+    if not isValidChannel(Pairings.getBlastChannel()):
+        await interaction.response.send_message('You haven\'t set a valid channel id! :sob:', ephemeral=True)
         return
     Pairings.startBlasting()
-    await client.change_presence(status=discord.Status.idle)
-    await interaction.response.send_message('Started blasts. :mega:', ephemeral=True)
+    await client.change_presence(status=discord.Status.online)
+    await interaction.response.send_message('Started blasts. :loud_sound:', ephemeral=True)
 
 
 
 @tree.command(name="stopblasts", description="Stop tournament blasts.", guild=activeGuild)
 async def stopBlasts(interaction):
     await interaction.response.send_message('Stopped blasts. :mute:', ephemeral=True)
-    await client.change_presence(status=discord.Status.online)
+    await client.change_presence(status=discord.Status.idle)
     Pairings.stopBlasting()
 
 
@@ -169,6 +159,15 @@ async def blast(interval):
             # TODO: error handling for invalid channel
             await client.get_channel(int(Pairings.getBlastChannel())).send('Test blast')
         await asyncio.sleep(interval)
+
+
+
+def isValidChannel(id : str):
+    try:
+        if not (client.get_channel(int(id))): raise Exception()
+    except:
+        return False
+    return True
 
 
 
