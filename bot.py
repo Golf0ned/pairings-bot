@@ -38,6 +38,7 @@ async def on_ready():
     print("Starting loop...")
     client.loop.create_task(blastHandler(5))
     print("Loaded!")
+    print("---------------------------------------------------------")
 
 
 
@@ -94,13 +95,6 @@ async def configureTournament(interaction, tournamentid : str):
 @tree.command(name="pairings", description="Post the pairings from the most recent round (for a specific team, if specified).", guild=activeGuild)
 async def pairings(interaction, team : typing.Optional[str]):
     await blast(team)
-    
-    # roundNum = 6
-    # teams = ["DC", "LA"]
-    # sides = ["Aff", "Neg"]
-    # opponents = ["UC Berkeley FT", "Michigan DW"]
-    # judges = ["Lee Quinn", "Nate Milton"]
-    # rooms = ["GRN 251/BR24", "TRB C115/BR66"]
 
 
 
@@ -140,8 +134,6 @@ async def blastHandler(interval):
             if Pairings.hasBlast():
                 await blast(None)
         await asyncio.sleep(interval)
-
-
 
 async def blast(team):
     if not pairings.isConfigured():
@@ -183,6 +175,7 @@ async def blast(team):
 
     embed.set_footer(text="Good luck!")
     await client.response.send_message(embed=embed)
+
 
 
 def isValidChannel(id : str):
