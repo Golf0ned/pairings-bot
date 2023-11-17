@@ -11,8 +11,8 @@ from dotenv import load_dotenv
 import pairings
 import tournament
 
-roundID = 1036666
-
+# testing utilities
+DEBUG = True
 
 # loads from dotenv
 load_dotenv()
@@ -62,7 +62,7 @@ async def pairingsHelp(interaction):
     for i in range(len(commands)):
         embed.add_field(name=commands[i][0], value=commands[i][1], inline=False)
 
-    await interaction.response.send_message(embed=embed)
+    await interaction.response.send_message(embed=embed, ephemeral=True)
 
 
 
@@ -94,12 +94,13 @@ async def configureTournament(interaction, tournamentid : str):
 
 @tree.command(name="pairings", description="Post the pairings from the most recent round (for a specific team, if specified).", guild=activeGuild)
 async def pairings(interaction, team : typing.Optional[str]):
-    await blast(team)
+    await blast(interaction, team)
 
 
 
 @tree.command(name="startblasts", description="Start tournament blasts.", guild=activeGuild)
 async def startBlasts(interaction):
+    print("Starting blasts.")
     if Pairings.isBlasting():
         await interaction.response.send_message('Blasts already started! :nerd:', ephemeral=True)
         return
@@ -116,6 +117,7 @@ async def startBlasts(interaction):
 
 @tree.command(name="stopblasts", description="Stop tournament blasts.", guild=activeGuild)
 async def stopBlasts(interaction):
+    print("Stopping blasts.")
     if not Pairings.isBlasting():
         await interaction.response.send_message('Blasts are already off! :nerd:', ephemeral=True)
         return
@@ -132,17 +134,18 @@ async def blastHandler(interval):
         if Pairings.isBlasting() and Pairings.hasTournament():
             Pairings.checkForRound()
             if Pairings.hasBlast():
-                await blast(None)
+                print("Received blast!")
+                await blast(None, None)
         await asyncio.sleep(interval)
 
-async def blast(team):
-    if not Pairings.isConfigured():
-        await client.response.send_message('Tournament isn\'t configured---use `/configuretournament` first. :disappointed_relieved:', ephemeral=True)
+async def blast(interaction, team):
+    if interaction and not Pairings.hasTournament():
+        await interaction.response.send_message('Tournament isn\'t configured---use `/configuretournament` first. :disappointed_relieved:', ephemeral=True)
         return
     
     roundInfo = Pairings.getRoundInfo()
-    if not roundInfo:
-        await client.response.send_message('Round isn\'t out yet. :yawning_face:', ephemeral=True)
+    if interaction and not roundInfo:
+        await interaction.response.send_message('Round isn\'t out yet. :yawning_face:', ephemeral=True)
         return
     
     school = Pairings.getSchool()
@@ -166,15 +169,19 @@ async def blast(team):
     # Specific team code
     else:
         index = validTeamCode(team, roundTeams)
-        if not index:
-            await client.response.send_message(f'{team} isn\'t a valid team code :pensive:', ephemeral=True)
+        if interaction and not index:
+            await interaction.response.send_message(f'{team} isn\'t a valid team code :pensive:', ephemeral=True)
 
         embed.title = f'Pairing for {school} {team.upper()} (Round {roundNum})'
         val = f'{roundJudges[index]} | {roundRooms[index]}'
         embed.add_field(name=f'{roundSides[index]} vs. {roundOpponents[index]}', value=val, inline=False)
 
     embed.set_footer(text="Good luck!")
-    await client.response.send_message(embed=embed)
+    
+    if interaction:
+        await interaction.response.send_message(embed=embed)
+    else:
+        await client.get_channel(int(Pairings.getBlastChannel())).send(embed=embed)
 
 
 
@@ -201,8 +208,10 @@ def reverseCode(teamCode):
     # TODO: error for teams of 3
     return teamCode[::-1] if len(teamCode) == 2 else teamCode[2:4] + teamCode[0:2]
 
-@tree.command(name="testBlast", description="Test for blast received.", guild=activeGuild)
-async def testBlast(interaction):
-    Pairings.__hasBlast = True
+if DEBUG:
+    @tree.command(name="testblast", description="Test for blast received.", guild=activeGuild)
+    async def testBlast(interaction):
+        Pairings.testBlast()
+        await interaction.response.send_message('Testing blast.', ephemeral=True)
 
 client.run(os.getenv(TOKEN))

@@ -38,15 +38,19 @@ class PairingsManager():
 
 
     def checkForRound(self):
-        if self.__tournament.updateRound():
+        if self.__tournament.updateTournamentRound():
             self.__hasBlast = True
 
 
     def getRoundInfo(self):
-        data = self.__tournament.getRound()
+        data = self.__tournament.getTournamentRound()
 
-        res = [self.__tournament.getTeams()]
+        res = [self.__tournament.getTournamentTeams()]
         for row in data:
             res.append(row)
         
         return res
+
+
+    def testBlast(self):
+        self.__hasBlast = True

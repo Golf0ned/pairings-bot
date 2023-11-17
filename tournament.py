@@ -1,5 +1,4 @@
 #tournament.py
-import asyncio
 import re
 import requests
 
@@ -46,10 +45,10 @@ class TournamentManager():
     def getTournamentTeams(self): return self.__teams
     def getRoundNumber(self): return self.__round
 
-    def updateRound(self):
+    def updateTournamentRound(self):
         pass
 
-    def getRound(self):
+    def getTournamentRound(self):
         if TESTING:
             return[["Aff", "Neg"],
                    ["UC Berkeley FT", "Michigan DW"],
