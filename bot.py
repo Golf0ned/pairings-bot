@@ -36,7 +36,7 @@ async def on_ready():
     print("Loading commands...")
     await tree.sync(guild=activeGuild)
     print("Starting loop...")
-    client.loop.create_task(blast(5))
+    client.loop.create_task(blastHandler(5))
     print("Loaded!")
 
 
@@ -93,46 +93,14 @@ async def configureTournament(interaction, tournamentid : str):
 
 @tree.command(name="pairings", description="Post the pairings from the most recent round (for a specific team, if specified).", guild=activeGuild)
 async def pairings(interaction, team : typing.Optional[str]):
-    roundNum = 6
-
-    teams = ["DC", "LA"]
-
-    sides = ["Aff", "Neg"]
-    opponents = ["UC Berkeley FT", "Michigan DW"]
-    judges = ["Lee Quinn", "Nate Milton"]
-    rooms = ["GRN 251/BR24", "TRB C115/BR66"]
-
-    # default value (all teams)
-    if not team:
-        embed = discord.Embed(title=f'Pairings (Round {roundNum})',
-                            url=tournament.getRoundURL(Pairings.getTournamentID(), roundNum),
-                            timestamp=datetime.datetime.utcnow(),
-                            color=0x4E2A84)
-        for i in range(2):
-            val = f'{sides[i]} vs. {opponents[i]} | {judges[i]} | {rooms[i]}'
-            embed.add_field(name=f'{Pairings.getSchool()} {teams[i]}', value=val, inline=False)
-        embed.set_footer(text="Good luck!")
-
-    # team code (specific team)
-    else:
-        embed = discord.Embed(title=f'Pairing for {Pairings.getSchool()} {team.upper()} (Round {roundNum})',
-                            url=tournament.getRoundURL(Pairings.getTournamentID(), roundNum),
-                            timestamp=datetime.datetime.utcnow(),
-                            color=0x4E2A84)
-        try:
-            index = teams.index(team.upper())
-        except:
-            try:    
-                index = teams.index(reverseCode(team).upper())
-            except:
-                await interaction.response.send_message(f'{team} isn\'t a valid team code :pensive:', ephemeral=True)
-                return
-            
-        val = f'{sides[index]} vs. {opponents[index]} | {judges[index]} | {rooms[index]}'
-        embed.add_field(name=f'{Pairings.getSchool()} {team}', value=val, inline=False)
-        embed.set_footer(text="Good luck!")
-
-    await interaction.response.send_message(embed=embed)
+    await blast(team)
+    
+    # roundNum = 6
+    # teams = ["DC", "LA"]
+    # sides = ["Aff", "Neg"]
+    # opponents = ["UC Berkeley FT", "Michigan DW"]
+    # judges = ["Lee Quinn", "Nate Milton"]
+    # rooms = ["GRN 251/BR24", "TRB C115/BR66"]
 
 
 
@@ -165,13 +133,56 @@ async def stopBlasts(interaction):
 
 
 
-async def blast(interval):
+async def blastHandler(interval):
     while(True):
-        if Pairings.isBlasting():
-            # TODO: actually blast stuff
-            await client.get_channel(int(Pairings.getBlastChannel())).send('Test blast')
+        if Pairings.isBlasting() and Pairings.hasTournament():
+            pairings.checkForRound()
+            if Pairings.hasBlast():
+                await blast(None)
         await asyncio.sleep(interval)
 
+
+
+async def blast(team):
+    if not pairings.isConfigured():
+        await client.response.send_message('Tournament isn\'t configured---use `/configuretournament` first. :disappointed_relieved:', ephemeral=True)
+        return
+    
+    roundInfo = pairings.getRoundInfo()
+    if not roundInfo:
+        await client.response.send_message('Round isn\'t out yet. :yawning_face:', ephemeral=True)
+        return
+    
+    school = Pairings.getSchool()
+    roundNum = Pairings.getCurRound()
+    roundURL = tournament.getRoundURL(Pairings.getTournamentID(), roundNum)
+    roundTeams = roundInfo[0]
+    roundSides = roundInfo[1]
+    roundOpponents = roundInfo[2]
+    roundJudges = roundInfo[3]
+    roundRooms = roundInfo[4]
+
+    embed = discord.Embed(title="", url=roundURL, timestamp=datetime.datetime.utcnow(), color=0x4E2A84)
+    
+    # All pairings
+    if not team:
+        embed.title = f'All Pairings (Round {roundNum})'
+        for i in range(len(roundTeams)):
+            val = f'{roundSides[i]} vs. {roundOpponents[i]} | {roundJudges[i]} | {roundRooms[i]}'
+            embed.add_field(name=f'{Pairings.getSchool()} {roundTeams[i]}', value=val, inline=False)
+
+    # Specific team code
+    else:
+        index = validTeamCode(team, roundTeams)
+        if not index:
+            await client.response.send_message(f'{team} isn\'t a valid team code :pensive:', ephemeral=True)
+
+        embed.title = f'Pairing for {school} {team.upper()} (Round {roundNum})'
+        val = f'{roundJudges[index]} | {roundRooms[index]}'
+        embed.add_field(name=f'{roundSides[index]} vs. {roundOpponents[index]}', value=val, inline=False)
+
+    embed.set_footer(text="Good luck!")
+    await client.response.send_message(embed=embed)
 
 
 def isValidChannel(id : str):
@@ -182,6 +193,16 @@ def isValidChannel(id : str):
     return True
 
 
+
+def validTeamCode(team, teams):
+    try:
+        index = teams.index(team.upper())
+    except:
+        try:    
+            index = teams.index(reverseCode(team).upper())
+        except:
+            return False
+    return index
 
 def reverseCode(teamCode):
     # TODO: error for teams of 3
