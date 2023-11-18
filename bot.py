@@ -2,6 +2,7 @@
 import asyncio
 import datetime
 import os
+import random
 import typing
 
 import discord
@@ -175,13 +176,15 @@ async def blast(interaction, team):
         embed.title = f'Pairing for {school} {team.upper()} (Round {roundNum})'
         val = f'{roundJudges[index]} | {roundRooms[index]}'
         embed.add_field(name=f'{roundSides[index]} vs. {roundOpponents[index]}', value=val, inline=False)
-
-    embed.set_footer(text="Good luck!")
+    
+    embed.set_footer(text=randomPairingsMessage())
     
     if interaction:
         await interaction.response.send_message(embed=embed)
     else:
-        await client.get_channel(int(Pairings.getBlastChannel())).send(embed=embed)
+        channel = client.get_channel(int(Pairings.getBlastChannel()))
+        await channel.send(f'@everyone Pairings are out for round {roundNum}!')
+        await channel.send(embed=embed)
 
 
 
@@ -207,6 +210,17 @@ def validTeamCode(team, teams):
 def reverseCode(teamCode):
     # TODO: error for teams of 3
     return teamCode[::-1] if len(teamCode) == 2 else teamCode[2:4] + teamCode[0:2]
+
+
+
+def randomPairingsMessage():
+    messages = [
+                "Remember to stay hydrated!",
+                "Good luck!",
+                "\"Prompt disclosure, please.\""
+                ]
+    return messages[random.randrange(len(messages))]
+
 
 if DEBUG:
     @tree.command(name="testblast", description="Test for blast received.", guild=activeGuild)
