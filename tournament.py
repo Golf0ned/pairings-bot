@@ -12,6 +12,7 @@ REGEXTOROUND = {"1" : "1",
                 "7" : "7",
                 "8" : "8",
                 "tr" : "Triples",
+                "sex" : "Doubles",
                 "d" : "Doubles",
                 "oct" : "Octos",
                 "q" : "Quarters",
@@ -29,7 +30,7 @@ def isValidEvent(tournamentID, eventID): return True
 
 def parseRoundNumber(round):
     string = round.lower().split()[-1]
-    regex = re.search('(\\d+)|(d)|(oct)|(q)|(tr)|(sem)|(fin)', string)
+    regex = re.search('(\\d+)|(sex)|(d)|(oct)|(q)|(tr)|(sem)|(fin)', string)
     if not regex:
         return None
     return REGEXTOROUND[regex.group()]
@@ -86,7 +87,7 @@ class TournamentManager():
             cols = row.findAll('td')
             roundData.append([cell.text.strip() for cell in cols])
 
-        filteredData = self.filterPairings(roundData[1:])
+        filteredData = self.filterPairings(roundData[1:], roundNum)
         if self.updatePairings(filteredData, roundNum):
             self.__round = roundNum
             return True
@@ -94,22 +95,43 @@ class TournamentManager():
 
 
 
-    def filterPairings(self, data):
+    def filterPairings(self, data, round):
         out = []
+        
+        # prelim
+        if round.isNumeric():
+            for row in data:
+                # print(row)
+                room = row[0]
+                aff = row[1]
+                neg = row[2]
+                judge = row[3]
 
-        for row in data:
-            # print(row)
-            room = row[0]
-            aff = row[1]
-            neg = row[2]
-            judge = row[3]
+                if self.__school in aff: 
+                    out.append([aff.split()[-1], "Aff", neg, judge, room])
 
-            if self.__school in aff: 
-                out.append([aff.split()[-1], "Aff", neg, judge, room])
-                # print(aff.split()[-1])
-            if self.__school in neg:
-                out.append([neg.split()[-1], "Neg", aff, judge, room])
-                # print(aff.split()[-1])
+                if self.__school in neg:
+                    out.append([neg.split()[-1], "Neg", aff, judge, room])
+
+        # elim
+        else:
+            for row in data:
+                # print(row)
+                room = row[0]
+                side1 = row[1]
+                side2 = row[2]
+                judges = ','.join(row[3:])
+
+                if self.__school in side1:
+                    if "Locked" in side1:
+                        out.append([side1.split()[-3], side1.split()[-1], side2.split()[:-3], judges, room])
+                    else:
+                        out.append([side1.split()[-1], "Flip", side2, judges, room])
+                if self.__school in side2:
+                    if "Locked" in side2:
+                        out.append([side2.split()[-3], side2.split()[-1], side1.split()[:-3], judges, room])
+                    else:
+                        out.append([side2.split()[-1], "Flip", side1, judges, room])
 
         return sorted(out)
 
