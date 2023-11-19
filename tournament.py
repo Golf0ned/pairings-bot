@@ -145,6 +145,7 @@ class TournamentManager():
             return False
         except:
             print("Tried to get pairings: Tab error occured")
+            return False
 
 
 
