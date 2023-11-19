@@ -23,7 +23,7 @@ REGEXTOROUND = {"1" : "1",
 def getPairingsURL(tournamentID): return f'https://www.tabroom.com/index/tourn/postings/index.mhtml?tourn_id={tournamentID}'
 def getRoundURL(tournamentID, roundID): return f'https://www.tabroom.com/index/tourn/postings/round.mhtml?tourn_id={tournamentID}&round_id={roundID}'
 def isValidTournament(tournamentID): return True
-def isValidEvent(self, tournamentID, eventID): return True
+def isValidEvent(tournamentID, eventID): return True
 
 
 
