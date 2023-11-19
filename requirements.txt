@@ -14,5 +14,4 @@ python-dotenv==1.0.0
 requests==2.31.0
 soupsieve==2.5
 urllib3==2.1.0
-windows-curses==2.3.1
 yarl==1.9.2
