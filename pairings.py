@@ -10,8 +10,8 @@ class PairingsManager():
         self.__blasting = False
         self.__hasBlast = False
 
-    def initTournament(self, id : str):
-        self.__tournament = tournament.TournamentManager(self.__school, id)
+    def initTournament(self, tournamentID, eventID):
+        self.__tournament = tournament.TournamentManager(self.__school, tournamentID, eventID)
     
     def hasTournament(self): 
         return True if self.__tournament else False
@@ -45,7 +45,7 @@ class PairingsManager():
     def getRoundInfo(self):
         data = self.__tournament.getTournamentRound()
 
-        res = [self.__tournament.getTournamentTeams()]
+        res = []
         for row in data:
             res.append(row)
         

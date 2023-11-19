@@ -13,7 +13,7 @@ import pairings
 import tournament
 
 # testing utilities
-DEBUG = True
+DEBUG = False
 
 # loads from dotenv
 load_dotenv()
@@ -37,7 +37,7 @@ async def on_ready():
     print("Loading commands...")
     await tree.sync(guild=activeGuild)
     print("Starting loop...")
-    client.loop.create_task(blastHandler(5))
+    client.loop.create_task(blastHandler(6))
     print("Loaded!")
     print("---------------------------------------------------------")
 
@@ -80,15 +80,18 @@ async def configureBlasts(interaction, school : str, channelid : str):
 
 
 
-@tree.command(name="configuretournament", description="Sets the tournament to blast pairings from.", guild=activeGuild)
-async def configureTournament(interaction, tournamentid : str):
+@tree.command(name="configuretournament", description="Sets the tournament to blast pairings from and the event/division.", guild=activeGuild)
+async def configureTournament(interaction, tournamentid : str, eventid : str):
     if not Pairings.getBlastChannel():
         await interaction.response.send_message('Your blasts aren\'t configured---use `/configureblasts` first. :face_in_clouds:', ephemeral=True)
         return
     if not tournament.isValidTournament(tournamentid):
-        await interaction.response.send_message(f'{tournamentid} isn\'t a valid tournament. :sweat:', ephemeral=True)
+        await interaction.response.send_message(f'{tournamentid} isn\'t a valid tournament id. :sweat:', ephemeral=True)
         return
-    Pairings.initTournament(tournamentid)
+    if not tournament.isValidEvent(tournamentid, eventid):
+        await interaction.response.send_message(f'{eventid} isn\'t a valid event id. :anguished:', ephemeral=True)
+        return
+    Pairings.initTournament(tournamentid, eventid)
     await interaction.response.send_message('Tournament configured! :trophy:', ephemeral=True)
 
 
@@ -133,6 +136,7 @@ async def stopBlasts(interaction):
 async def blastHandler(interval):
     while(True):
         if Pairings.isBlasting() and Pairings.hasTournament():
+            print("checking blast")
             Pairings.checkForRound()
             if Pairings.hasBlast():
                 print("Received blast!")
@@ -217,12 +221,27 @@ def randomPairingsMessage():
     messages = [
                 "Remember to stay hydrated!",
                 "Good luck!",
-                "\"Prompt disclosure, please.\""
+                "\"Prompt disclosure, please.\"",
+                "SKEMMMMMMMSSSSSSSSSSS!!!!!!!!!!!!!!!!"
                 ]
     return messages[random.randrange(len(messages))]
 
 
 if DEBUG:
+    @tree.command(name="quickconfig", description="Quick config for testing.", guild=activeGuild)
+    async def quickConfig(interaction):
+        school = 'Berkeley Prep'
+        channelid = '1059975075790589994'
+        tournamentid = '27300'
+        eventid = '249978'
+        # wake: 28074, 255179
+        # gbx: 27300, 249978 (249972 for jv)
+
+        Pairings.setSchool(school)
+        Pairings.setBlastChannel(channelid)
+        Pairings.initTournament(tournamentid, eventid)
+        await interaction.response.send_message('Quick configured!', ephemeral=True)
+
     @tree.command(name="testblast", description="Test for blast received.", guild=activeGuild)
     async def testBlast(interaction):
         Pairings.testBlast()
