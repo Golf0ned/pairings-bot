@@ -37,7 +37,7 @@ async def on_ready():
     print("Loading commands...")
     await tree.sync(guild=activeGuild)
     print("Starting loop...")
-    client.loop.create_task(blastHandler(6))
+    client.loop.create_task(blastHandler(10))
     print("Loaded!")
     print("---------------------------------------------------------")
 
@@ -136,7 +136,6 @@ async def stopBlasts(interaction):
 async def blastHandler(interval):
     while(True):
         if Pairings.isBlasting() and Pairings.hasTournament():
-            print("checking blast")
             Pairings.checkForRound()
             if Pairings.hasBlast():
                 print("Received blast!")
@@ -222,7 +221,7 @@ def randomPairingsMessage():
                 "Remember to stay hydrated!",
                 "Good luck!",
                 "\"Prompt disclosure, please.\"",
-                "SKEMMMMMMMSSSSSSSSSSS!!!!!!!!!!!!!!!!"
+                "SKEMMMMMMMSSSSSSSSSSS!!!!!!!!!!!!!!!! ~Buntin"
                 ]
     return messages[random.randrange(len(messages))]
 
