@@ -56,12 +56,12 @@ Sets the school to filter pairings by and the channel that blasts should be sent
 
 ### Configure Tournament
 ```
-/configuretournament <tournament-id>
+/configuretournament <tournament-id> <event-id>
 ```
 
-Sets the tournament to blast pairings from.
+Sets the tournament to blast pairings from and the event pairings will be pulled from.
 
-`tournament-id` is the aptly labelled portion of the tournament URL.
+Both `tournament-id` and `event-id` can be found in the URL of the entries in the event on Tabroom.
 
 (Insert screenshot here)
 
