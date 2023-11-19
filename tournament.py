@@ -127,11 +127,11 @@ class TournamentManager():
             newOpponents.append(row[2])
             newJudges.append(row[3])
             newRooms.append(row[4])
-        if not (not newTeams and self.__round.isnumeric()) and (self.__teams != newTeams or
-                                                                self.__sides != newSides or
-                                                                self.__opponents != newOpponents or
-                                                                self.__judges != newJudges or
-                                                                self.__rooms != newRooms):
+        if (self.__teams != newTeams or
+            self.__sides != newSides or
+            self.__opponents != newOpponents or
+            self.__judges != newJudges or
+            self.__rooms != newRooms):
             self.__teams = newTeams
             self.__sides = newSides
             self.__opponents = newOpponents
