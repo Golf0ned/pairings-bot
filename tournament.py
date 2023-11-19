@@ -116,32 +116,35 @@ class TournamentManager():
 
 
     def updatePairings(self, data, round):
-        newTeams = []
-        newSides = []
-        newOpponents = []
-        newJudges = []
-        newRooms = []
+        try:
+            newTeams = []
+            newSides = []
+            newOpponents = []
+            newJudges = []
+            newRooms = []
 
-        for row in data:
-            newTeams.append(row[0])
-            newSides.append(row[1])
-            newOpponents.append(row[2])
-            newJudges.append(row[3])
-            newRooms.append(row[4])
-        
-        if self.__round == round and len(newTeams) != self.__teams:
+            for row in data:
+                newTeams.append(row[0])
+                newSides.append(row[1])
+                newOpponents.append(row[2])
+                newJudges.append(row[3])
+                newRooms.append(row[4])
+            
+            if self.__round == round and len(newTeams) != self.__teams:
+                return False
+            elif (self.__round != round or
+                self.__opponents != newOpponents or
+                self.__judges != newJudges or
+                self.__rooms != newRooms):
+                self.__teams = newTeams
+                self.__sides = newSides
+                self.__opponents = newOpponents
+                self.__judges = newJudges
+                self.__rooms = newRooms
+                return True
             return False
-        elif (self.__round != round or
-              self.__opponents != newOpponents or
-              self.__judges != newJudges or
-              self.__rooms != newRooms):
-            self.__teams = newTeams
-            self.__sides = newSides
-            self.__opponents = newOpponents
-            self.__judges = newJudges
-            self.__rooms = newRooms
-            return True
-        return False
+        except:
+            print("Tried to get pairings: Tab error occured")
 
 
 
