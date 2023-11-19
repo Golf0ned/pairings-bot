@@ -87,7 +87,7 @@ class TournamentManager():
             roundData.append([cell.text.strip() for cell in cols])
 
         filteredData = self.filterPairings(roundData[1:])
-        if self.updatePairings(filteredData):
+        if self.updatePairings(filteredData, roundNum):
             self.__round = roundNum
             return True
         return False
@@ -115,23 +115,26 @@ class TournamentManager():
 
 
 
-    def updatePairings(self, data):
+    def updatePairings(self, data, round):
         newTeams = []
         newSides = []
         newOpponents = []
         newJudges = []
         newRooms = []
+
         for row in data:
             newTeams.append(row[0])
             newSides.append(row[1])
             newOpponents.append(row[2])
             newJudges.append(row[3])
             newRooms.append(row[4])
-        if not (not newTeams and self.__round.isnumeric()) and (self.__teams != newTeams or
-                                                                self.__sides != newSides or
-                                                                self.__opponents != newOpponents or
-                                                                self.__judges != newJudges or
-                                                                self.__rooms != newRooms):
+        
+        if self.__round == round and len(newTeams) != self.__teams:
+            return False
+        elif (self.__round != round or
+              self.__opponents != newOpponents or
+              self.__judges != newJudges or
+              self.__rooms != newRooms):
             self.__teams = newTeams
             self.__sides = newSides
             self.__opponents = newOpponents
@@ -139,7 +142,7 @@ class TournamentManager():
             self.__rooms = newRooms
             return True
         return False
-            
+
 
 
     def getTournamentRound(self):
