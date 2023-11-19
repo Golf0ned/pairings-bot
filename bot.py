@@ -49,7 +49,7 @@ async def on_ready():
 async def pairingsHelp(interaction):
     commands = [("/help",                                    "Displays all commands for PairingsBot."),
                 ("/configureblasts <school> <channel-id>",   "Sets the school to filter pairings by and the channel that blasts should be sent to."),
-                ("/configuretournaments <tournament-id>",    "Sets the tournament to blast pairings from."),
+                ("/configuretournaments <tournament-id> <event-id>",    "Sets the tournament to blast pairings from and the event."),
                 ("/pairings",                                "Posts the pairings from the most recent round for all teams."),
                 ("/pairings <team-code>",                    "Post the pairings from the most recent round for a specific team."),
                 ("/startblasts",                             "Start tournament blasts."),
