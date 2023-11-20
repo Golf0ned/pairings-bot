@@ -179,13 +179,16 @@ class TournamentManager():
             return False
 
     def validBlast(self, newRound, teams, opponents, judges, rooms):
+        # new round: blast
         if ROUNDENUM[newRound] > ROUNDENUM[self.__round]:
             return True
+        # same round: blast if different opponents, judges, or rooms BUT only if not less
         elif ROUNDENUM[newRound] == ROUNDENUM[self.__round]:
-            if len(teams) < len(self.__teams) or len(opponents) < len(self.__opponents):
+            if len(teams) < len(self.__teams) or len([o for o in opponents if o]) < len(self.__opponents):
                 return False
             elif (self.__opponents != opponents or self.__judges != judges or self.__rooms != rooms):
                 return True
+        # older round: don't blast
         return False
 
     def getTournamentRound(self):
