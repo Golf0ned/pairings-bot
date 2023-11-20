@@ -13,7 +13,7 @@ import pairings
 import tournament
 
 # testing utilities
-DEBUG = True
+DEBUG = False
 
 # loads from dotenv
 load_dotenv()
@@ -174,7 +174,7 @@ async def blast(interaction, team):
     else:
         index = validTeamCode(team, roundTeams)
         print(index)
-        if interaction and not index:
+        if interaction and index >= 0:
             await interaction.response.send_message(f'{team} isn\'t a valid team code :pensive:', ephemeral=True)
             return
 
@@ -209,7 +209,7 @@ def validTeamCode(team, teams):
         try:    
             index = teams.index(reverseCode(team).upper())
         except:
-            return False
+            return -1
     return index
 
 def reverseCode(teamCode):
