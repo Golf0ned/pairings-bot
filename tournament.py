@@ -99,7 +99,7 @@ class TournamentManager():
         out = []
         
         # prelim
-        if round.isNumeric():
+        if round.isnumeric():
             for row in data:
                 # print(row)
                 room = row[0]
