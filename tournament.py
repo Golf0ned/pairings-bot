@@ -182,7 +182,7 @@ class TournamentManager():
         if ROUNDENUM[newRound] > ROUNDENUM[self.__round]:
             return True
         elif ROUNDENUM[newRound] == ROUNDENUM[self.__round]:
-            if len(teams) < len(self.__teams):
+            if len(teams) < len(self.__teams) or len(opponents) < len(self.__opponents):
                 return False
             elif (self.__opponents != opponents or self.__judges != judges or self.__rooms != rooms):
                 return True
