@@ -7,6 +7,7 @@ import typing
 
 import discord
 from discord import app_commands
+from discord.ext import tasks
 from dotenv import load_dotenv
 
 import pairings
@@ -37,7 +38,7 @@ async def on_ready():
     print("Loading commands...")
     await tree.sync(guild=activeGuild)
     print("Starting loop...")
-    client.loop.create_task(blastHandler(10))
+    blastHandler.start()
     print("Loaded!")
     print("---------------------------------------------------------")
 
@@ -132,15 +133,13 @@ async def stopBlasts(interaction):
     await interaction.response.send_message('Stopped blasts. :mute:', ephemeral=True)
 
 
-
-async def blastHandler(interval):
-    while(True):
-        if Pairings.isBlasting() and Pairings.hasTournament():
-            Pairings.checkForRound()
-            if Pairings.hasBlast():
-                print("Received blast!")
-                await blast(None, None)
-        await asyncio.sleep(interval)
+@tasks.loop(seconds=8)
+async def blastHandler():
+    if Pairings.isBlasting() and Pairings.hasTournament():
+        Pairings.checkForRound()
+        if Pairings.hasBlast():
+            print("Received blast!")
+            await blast(None, None)
 
 async def blast(interaction, team):
     if interaction and not Pairings.hasTournament():
