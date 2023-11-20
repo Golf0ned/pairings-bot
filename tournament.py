@@ -120,16 +120,16 @@ class TournamentManager():
                 room = row[0]
                 side1 = row[1]
                 side2 = row[2]
-                judges = ','.join(row[3:])
+                judges = ', '.join(row[3:])
 
                 if self.__school in side1:
                     if "Locked" in side1:
-                        out.append([side1.split()[-3], side1.split()[-1], side2.split()[:-3], judges, room])
+                        out.append([side1.split()[-3], side1.split()[-1], ' '.join(side2.split()[:-2]), judges, room])
                     else:
                         out.append([side1.split()[-1], "Flip", side2, judges, room])
                 if self.__school in side2:
                     if "Locked" in side2:
-                        out.append([side2.split()[-3], side2.split()[-1], side1.split()[:-3], judges, room])
+                        out.append([side2.split()[-3], side2.split()[-1], ' '.join(side1.split()[:-2]), judges, room])
                     else:
                         out.append([side2.split()[-1], "Flip", side1, judges, room])
 
