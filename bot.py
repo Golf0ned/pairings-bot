@@ -220,8 +220,14 @@ def randomPairingsMessage():
     messages = [
                 "Remember to stay hydrated!",
                 "Good luck!",
+                "Remember to ingest caffeine!",
+                "EAT YOUR FUCKING SNACKS.",
                 "\"Prompt disclosure, please.\"",
-                "SKEMMMMMMMSSSSSSSSSSS!!!!!!!!!!!!!!!! ~Buntin"
+                "The word 'declaratory' contains the letter R.",
+                "It's pronounced new-clear, not nu-cu-lur.",
+                "It's *THE* Hardy. Not just Hardy, *THE* Hardy.",
+                "SKEMMMMMMMSSSSSSSSSSS!!!!!!!!!!!!!!!! ~Buntin",
+                "This is your cue to read nuclear tipped BMD."
                 ]
     return messages[random.randrange(len(messages))]
 
