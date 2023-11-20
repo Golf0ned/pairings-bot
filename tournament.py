@@ -19,7 +19,20 @@ REGEXTOROUND = {"1" : "1",
                 "sem" : "Semis",
                 "fin" : "Finals"}
 
-
+ROUNDENUM = {"1" : 1,
+             "2" : 2,
+             "3" : 3,
+             "4" : 4,
+             "5" : 5,
+             "6" : 6,
+             "7" : 7,
+             "8" : 8,
+             "Triples" : 9,
+             "Doubles" : 10,
+             "Octos" : 11,
+             "Quarters" : 12,
+             "Semis" : 13,
+             "Finals" : 14}
 
 def getPairingsURL(tournamentID): return f'https://www.tabroom.com/index/tourn/postings/index.mhtml?tourn_id={tournamentID}'
 def getRoundURL(tournamentID, roundID): return f'https://www.tabroom.com/index/tourn/postings/round.mhtml?tourn_id={tournamentID}&round_id={roundID}'
@@ -137,7 +150,7 @@ class TournamentManager():
 
 
 
-    def updatePairings(self, data, round):
+    def updatePairings(self, data, newRound):
         try:
             newTeams = []
             newSides = []
@@ -152,12 +165,7 @@ class TournamentManager():
                 newJudges.append(row[3])
                 newRooms.append(row[4])
             
-            if self.__round == round and len(newTeams) != self.__teams:
-                return False
-            elif (self.__round != round or
-                self.__opponents != newOpponents or
-                self.__judges != newJudges or
-                self.__rooms != newRooms):
+            if self.validBlast(newRound, newTeams, newOpponents, newJudges, newRooms):
                 self.__teams = newTeams
                 self.__sides = newSides
                 self.__opponents = newOpponents
@@ -169,7 +177,15 @@ class TournamentManager():
             print("Tried to get pairings: Tab error occured")
             return False
 
-
+    def validBlast(self, newRound, teams, opponents, judges, rooms):
+        if ROUNDENUM[newRound] > ROUNDENUM[self.__round]:
+            return True
+        elif ROUNDENUM[newRound] == ROUNDENUM[self.__round]:
+            if len(teams) < len(self.__teams):
+                return False
+            elif (self.__opponents != opponents or self.__judges != judges or self.__rooms != rooms):
+                return True
+        return False
 
     def getTournamentRound(self):
         return[self.__teams,
