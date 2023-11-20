@@ -152,31 +152,31 @@ class TournamentManager():
 
 
     def updatePairings(self, data, newRound):
-        # try:
-        newTeams = []
-        newSides = []
-        newOpponents = []
-        newJudges = []
-        newRooms = []
+        try:
+            newTeams = []
+            newSides = []
+            newOpponents = []
+            newJudges = []
+            newRooms = []
 
-        for row in data:
-            newTeams.append(row[0])
-            newSides.append(row[1])
-            newOpponents.append(row[2])
-            newJudges.append(row[3])
-            newRooms.append(row[4])
-        
-        if self.validBlast(newRound, newTeams, newOpponents, newJudges, newRooms):
-            self.__teams = newTeams
-            self.__sides = newSides
-            self.__opponents = newOpponents
-            self.__judges = newJudges
-            self.__rooms = newRooms
-            return True
-        return False
-        # except:
-        #     print("Tried to get pairings: Tab error occured")
-        #     return False
+            for row in data:
+                newTeams.append(row[0])
+                newSides.append(row[1])
+                newOpponents.append(row[2])
+                newJudges.append(row[3])
+                newRooms.append(row[4])
+            
+            if self.validBlast(newRound, newTeams, newOpponents, newJudges, newRooms):
+                self.__teams = newTeams
+                self.__sides = newSides
+                self.__opponents = newOpponents
+                self.__judges = newJudges
+                self.__rooms = newRooms
+                return True
+            return False
+        except:
+            print("Tried to get pairings: Tab error occured")
+            return False
 
     def validBlast(self, newRound, teams, opponents, judges, rooms):
         if ROUNDENUM[newRound] > ROUNDENUM[self.__round]:
