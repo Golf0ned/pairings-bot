@@ -173,7 +173,7 @@ async def blast(interaction, team):
     # Specific team code
     else:
         index = validTeamCode(team, roundTeams)
-        print(roundTeams)
+        print(index)
         if interaction and not index:
             await interaction.response.send_message(f'{team} isn\'t a valid team code :pensive:', ephemeral=True)
             return
