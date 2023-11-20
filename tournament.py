@@ -19,7 +19,8 @@ REGEXTOROUND = {"1" : "1",
                 "sem" : "Semis",
                 "fin" : "Finals"}
 
-ROUNDENUM = {"1" : 1,
+ROUNDENUM = {None : 0,
+             "1" : 1,
              "2" : 2,
              "3" : 3,
              "4" : 4,
