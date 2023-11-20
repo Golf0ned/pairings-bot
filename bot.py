@@ -14,7 +14,7 @@ import pairings
 import tournament
 
 # testing utilities
-DEBUG = False
+DEBUG = True
 
 # loads from dotenv
 load_dotenv()
@@ -231,7 +231,7 @@ if DEBUG:
     @tree.command(name="quickconfig", description="Quick config for testing.", guild=activeGuild)
     async def quickConfig(interaction):
         school = 'Montgomery Bell'
-        channelid = '1059975075790589994'
+        channelid = '1175658371257475163'
         tournamentid = '27300'
         eventid = '249978'
         # wake: 28074, 255179
