@@ -14,7 +14,7 @@ import pairings
 import tournament
 
 # testing utilities
-DEBUG = True
+DEBUG = False
 
 # loads from dotenv
 load_dotenv()
@@ -172,7 +172,6 @@ async def blast(interaction, team):
     # Specific team code
     else:
         index = validTeamCode(team, roundTeams)
-        print(index)
         if interaction and index < 0:
             await interaction.response.send_message(f'{team} isn\'t a valid team code :pensive:', ephemeral=True)
             return
