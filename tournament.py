@@ -87,7 +87,7 @@ class TournamentManager():
             cols = row.findAll('td')
             roundData.append([cell.text.strip() for cell in cols])
 
-        filteredData = self.filterPairings(roundData, roundNum)
+        filteredData = self.filterPairings(roundData[1:], roundNum)
         if self.updatePairings(filteredData, roundNum):
             self.__round = roundNum
             return True
