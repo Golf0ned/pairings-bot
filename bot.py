@@ -49,7 +49,7 @@ async def on_ready():
               guild=discord.Object(id=os.getenv(GUILD_ID)))
 async def pairingsHelp(interaction):
     commands = [("/help",                                             "Displays all commands for PairingsBot."),
-                ("/configureblasts <school> <channel-id>",            "Sets the school to filter pairings by and the channel that blasts should be sent to."),
+                ("/configureblasts <school> <channel>",               "Sets the school to filter pairings by and the channel that blasts should be sent to."),
                 ("/configuretournaments <tournament-id> <event-id>",  "Sets the tournament to blast pairings from and the event."),
                 ("/pairings",                                         "Posts the pairings from the most recent round for all teams."),
                 ("/pairings <team-code>",                             "Post the pairings from the most recent round for a specific team."),
@@ -71,9 +71,10 @@ async def pairingsHelp(interaction):
 @tree.command(name="configureblasts",
               description="Sets the school to filter pairings by and the channel that blasts should be sent to.",
               guild=activeGuild)
-async def configureBlasts(interaction, school : str, channelid : str):
+async def configureBlasts(interaction, school : str, channel : discord.TextChannel):
+    channelid = channel.id
     if not isValidChannel(channelid):
-        await interaction.response.send_message(f'{channelid} isn\'t a valid channel id. :smiling_face_with_tear:', ephemeral=True)
+        await interaction.response.send_message(f'{channelid} isn\'t a valid channel. :smiling_face_with_tear:', ephemeral=True)
         return
     Pairings.setSchool(school)
     Pairings.setBlastChannel(channelid)
