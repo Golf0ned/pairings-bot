@@ -74,7 +74,7 @@ async def pairingsHelp(interaction):
 async def configureBlasts(interaction, school : str, channel : discord.TextChannel):
     channelid = channel.id
     if not isValidChannel(channelid):
-        await interaction.response.send_message(f'{channelid} isn\'t a valid channel. :smiling_face_with_tear:', ephemeral=True)
+        await interaction.response.send_message(f'{channel} isn\'t a valid channel. :smiling_face_with_tear:', ephemeral=True)
         return
     Pairings.setSchool(school)
     Pairings.setBlastChannel(channelid)
