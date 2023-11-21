@@ -191,6 +191,8 @@ class TournamentManager():
             print("Tried to get pairings: Tab error occured")
             return False
 
+
+
     def validBlast(self, newRound, teams, opponents, judges, rooms):
         # new round: blast
         if ROUNDENUM[newRound] > ROUNDENUM[self.__round]:
@@ -203,6 +205,8 @@ class TournamentManager():
                 return True
         # older round: don't blast
         return False
+
+
 
     def getTournamentRound(self):
         return[self.__teams,
