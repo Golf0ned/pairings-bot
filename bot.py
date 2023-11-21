@@ -13,9 +13,6 @@ from dotenv import load_dotenv
 import pairings
 import tournament
 
-# testing utilities
-DEBUG = True
-
 # loads from dotenv
 load_dotenv()
 TOKEN = 'DISCORD_TOKEN'
@@ -37,7 +34,7 @@ async def on_ready():
     print(f'Logged in as {client.user} (ID: {client.user.id})')
     print("Loading commands...")
     await tree.sync(guild=activeGuild)
-    print("Starting loop...")
+    print("Starting blast handler...")
     blastHandler.start()
     print("Loaded!")
     print("---------------------------------------------------------")
@@ -237,24 +234,5 @@ def randomPairingsMessage():
     return messages[random.randrange(len(messages))]
 
 
-if DEBUG:
-    @tree.command(name="quickconfig", description="Quick config for testing.", guild=activeGuild)
-    async def quickConfig(interaction):
-        school = 'Liberal Arts and Science'
-        channelid = '1175658371257475163'
-        tournamentid = '27300'
-        eventid = '249978'
-        # wake: 28074, 255179
-        # gbx: 27300, 249978 (249972 for jv)
-
-        Pairings.setSchool(school)
-        Pairings.setBlastChannel(channelid)
-        Pairings.initTournament(tournamentid, eventid)
-        await interaction.response.send_message('Quick configured!', ephemeral=True)
-
-    @tree.command(name="testblast", description="Test for blast received.", guild=activeGuild)
-    async def testBlast(interaction):
-        Pairings.testBlast()
-        await interaction.response.send_message('Testing blast.', ephemeral=True)
 
 client.run(os.getenv(TOKEN))
