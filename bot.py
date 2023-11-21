@@ -82,7 +82,7 @@ async def configureBlasts(interaction, school : str, channel : discord.TextChann
 
 
 
-@tree.command(name="configuretournament", description="Sets the tournament to blast pairings from and the event/division.", guild=activeGuild)
+@tree.command(name="configuretournament", description="Sets the tournament and event to blast pairings from.", guild=activeGuild)
 async def configureTournament(interaction, tournamentid : str, eventid : str):
     if not Pairings.getBlastChannel():
         await interaction.response.send_message('Your blasts aren\'t configured---use `/configureblasts` first. :face_in_clouds:', ephemeral=True)
@@ -94,7 +94,7 @@ async def configureTournament(interaction, tournamentid : str, eventid : str):
         await interaction.response.send_message(f'{eventid} isn\'t a valid event id. :anguished:', ephemeral=True)
         return
     Pairings.initTournament(tournamentid, eventid)
-    await interaction.response.send_message('Tournament configured! :trophy:', ephemeral=True)
+    await interaction.response.send_message(f'Tournament configured! :trophy:\n(Tournament ID: {tournamentid}, Event ID: {eventid})', ephemeral=True)
 
 
 

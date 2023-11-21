@@ -57,7 +57,6 @@ class TournamentManager():
         self.__school = school
         self.__tournamentID = tournamentID
         self.__eventID = eventID
-        self.__name = ""
 
         self.__round = None
         self.__teams = []
@@ -70,7 +69,6 @@ class TournamentManager():
 
     def getTournamentID(self): return self.__tournamentID
     def getEventID(self): return self.__eventID
-    def getTournamentName(self): return self.__name
     def getRoundNumber(self): return self.__round
 
 
