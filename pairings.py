@@ -50,7 +50,3 @@ class PairingsManager():
             res.append(row)
         
         return res
-
-
-    def testBlast(self):
-        self.__hasBlast = True
