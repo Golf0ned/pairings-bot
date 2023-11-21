@@ -43,16 +43,20 @@ pfft you thought i had time to implement this. will do once i write more stuff s
 
 Self-explanatory. Displays all commands.
 
+<img width="467" alt="image" src="https://github.com/Golf0ned/pairings-bot/assets/60253050/6ba65e56-3208-4afd-9ec9-7018d6cc4beb">
+
 ### Configure Blasts
 ```
-/configureblasts <school> <channel-id>
+/configureblasts <school> <channel>
 ```
 
 Sets the school to filter pairings by and the channel that blasts should be sent to.
 
-`school` should be identical to the name as displayed on Tabroom.
+`school` should be identical to the school name as displayed on Tabroom.
 
-`channel-id` refers to the developer ID of the channel blasts should be sent to. With developer mode on in Discord, you can copy the channel ID by right clicking the channel and selecting the bottom selection.
+`channel` is the channel blasts will be sent to.
+
+<img width="381" alt="image" src="https://github.com/Golf0ned/pairings-bot/assets/60253050/6a2f41c2-2eaa-4eff-bba9-47c54eb7492b">
 
 ### Configure Tournament
 ```
@@ -63,7 +67,7 @@ Sets the tournament to blast pairings from and the event pairings will be pulled
 
 Both `tournament-id` and `event-id` can be found in the URL of the entries in the event on Tabroom.
 
-(Insert screenshot here)
+(Insert screenshots here)
 
 ### Pairings
 ```
@@ -74,16 +78,22 @@ Post the pairings from the most recent round for a specific team/partnership.
 
 If `team-code` is left blank, posts the pairings from the most recent round for all teams/parnerships.
 
+Refer to [`/startblasts`](https://github.com/Golf0ned/pairings-bot#start-blasts) for more info on blasts.
+
 The team code refers to just the initials of the team code (i.e. excluding school).
 
-(Insert screenshot here)
+(Insert screenshots here)
 
 ### Start Blasts
 ```
 /startblasts
 ```
 
-Starts tournament blasts. Checks every 5 seconds.
+Starts tournament blasts. Checks every 8 seconds.
+
+A blast contains teams' sides, opponents, judges, and room.
+
+(Insert screenshot here)
 
 ### Stop Blasts
 ```
