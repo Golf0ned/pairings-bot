@@ -37,8 +37,25 @@ ROUNDENUM = {None : 0,
 
 def getPairingsURL(tournamentID): return f'https://www.tabroom.com/index/tourn/postings/index.mhtml?tourn_id={tournamentID}'
 def getRoundURL(tournamentID, roundID): return f'https://www.tabroom.com/index/tourn/postings/round.mhtml?tourn_id={tournamentID}&round_id={roundID}'
-def isValidTournament(tournamentID): return True
-def isValidEvent(tournamentID, eventID): return True
+
+def isValidTournament(tournamentID):
+    url = f'https://www.tabroom.com/index/tourn/index.mhtml?tourn_id={tournamentID}'
+    response = requests.get(url)
+    soup = BeautifulSoup(response.content, "html.parser")
+
+    text = ' '.join(soup.get_text().split())
+
+    return not ('Invalid tourn ID or URL' in text)
+
+def isValidEvent(tournamentID, eventID):
+    url = f'https://www.tabroom.com/index/tourn/fields.mhtml?tourn_id={tournamentID}&event_id={eventID}'
+    response = requests.get(url)
+    soup = BeautifulSoup(response.content, "html.parser")
+
+    text = ' '.join(soup.get_text().split())
+    print(text)
+
+    return not ('Invalid event ID or URL' in text) and not ('This event\'s field is not published by the tournament' in text)
 
 
 
@@ -113,7 +130,6 @@ class TournamentManager():
         # prelim
         if round.isnumeric():
             for row in data:
-                # print(row)
                 room = row[0]
                 aff = row[1]
                 neg = row[2]
@@ -128,7 +144,6 @@ class TournamentManager():
         # elim
         else:
             for row in data:
-                # print(row)
                 room = row[0]
                 side1 = row[1]
                 side2 = row[2]

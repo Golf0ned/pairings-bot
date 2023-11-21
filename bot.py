@@ -94,7 +94,7 @@ async def configureTournament(interaction, tournamentid : str, eventid : str):
         await interaction.response.send_message(f'{eventid} isn\'t a valid event id. :anguished:', ephemeral=True)
         return
     Pairings.initTournament(tournamentid, eventid)
-    await interaction.response.send_message(f'Tournament configured! :trophy:\n(Tournament ID: {tournamentid}, Event ID: {eventid})', ephemeral=True)
+    await interaction.response.send_message(f'Tournament configured! :trophy:\n(Tournament ID: **{tournamentid}**, Event ID: **{eventid}**)\n', ephemeral=True)
 
 
 
