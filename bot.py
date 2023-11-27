@@ -217,17 +217,8 @@ def randomPairingsMessage():
                 "Good luck!",
                 "Remember to stay hydrated!",
                 "Reminder to ingest caffeine!",
-                "EAT YOUR FUCKING SNACKS.",
-
                 "\"Prompt disclosure, please.\"",
-                "Zoom zoom, go to room.",
-
-                "The word 'declaratory' contains the letter R.",
-                "It's pronounced new-clear, not nu-cu-lur.",
-                "This is your cue to read nuclear tipped BMD.",
-
-                "It's *THE* Hardy. Not just Hardy, *THE* Hardy.",
-                "\"SKEMMMMMMMSSSSSSSSSSS!!!!!!!!!!!!!!!!\" ~Buntin"
+                "Zoom zoom, go to room."
                 ]
     return messages[random.randrange(len(messages))]
 
