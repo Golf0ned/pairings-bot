@@ -30,6 +30,8 @@ activeGuild = discord.Object(id=os.getenv(GUILD_ID))
 
 @client.event
 async def on_ready():
+    if DEBUG:
+        print('[DEBUG] Debug is on.')
     print(f'Logged in as {client.user} (ID: {client.user.id})')
     print("Loading commands...")
     await tree.sync(guild=activeGuild)
