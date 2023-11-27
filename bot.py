@@ -227,7 +227,7 @@ def randomPairingsMessage():
 
 
 
-if DEBUG:
+if os.getenv(DEBUG):
     @tree.command(name="quickconfig", description="Quick config for testing.", guild=activeGuild)
     async def quickConfig(interaction):
         school = 'SCHOOL_NAME'

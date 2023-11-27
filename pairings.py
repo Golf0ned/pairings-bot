@@ -1,7 +1,9 @@
 # pairings.py
-import tournament
+import os
 
 from dotenv import load_dotenv
+
+import tournament
 
 load_dotenv()
 DEBUG = 'DEBUG'
@@ -56,6 +58,6 @@ class PairingsManager():
         
         return res
 
-    if DEBUG:
+    if os.getenv(DEBUG):
         def testBlast(self):
             self.__hasBlast = True
