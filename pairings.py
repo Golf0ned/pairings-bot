@@ -1,6 +1,11 @@
 # pairings.py
 import tournament
 
+from dotenv import load_dotenv
+
+load_dotenv()
+DEBUG = 'DEBUG'
+
 class PairingsManager():
 
     def __init__(self):
@@ -50,3 +55,7 @@ class PairingsManager():
             res.append(row)
         
         return res
+
+    if DEBUG:
+        def testBlast(self):
+            self.__hasBlast = True

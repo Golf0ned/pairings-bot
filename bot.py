@@ -15,6 +15,7 @@ import tournament
 load_dotenv()
 TOKEN = 'DISCORD_TOKEN'
 GUILD_ID = 'GUILD_ID'
+DEBUG = 'DEBUG'
 
 Pairings = pairings.PairingsManager()
 
@@ -221,6 +222,26 @@ def randomPairingsMessage():
                 "Zoom zoom, go to room."
                 ]
     return messages[random.randrange(len(messages))]
+
+
+
+if DEBUG:
+    @tree.command(name="quickconfig", description="Quick config for testing.", guild=activeGuild)
+    async def quickConfig(interaction):
+        school = 'SCHOOL_NAME'
+        channelid = 'CHANNEL_ID'
+        tournamentid = 'TOURNAMENT_ID'
+        eventid = 'EVENT_ID'
+
+        Pairings.setSchool(school)
+        Pairings.setBlastChannel(channelid)
+        Pairings.initTournament(tournamentid, eventid)
+        await interaction.response.send_message('[DEBUG] Quick configured!', ephemeral=True)
+
+    @tree.command(name="testblast", description="Test for blast received.", guild=activeGuild)
+    async def testBlast(interaction):
+        Pairings.testBlast()
+        await interaction.response.send_message('[DEBUG] Testing blast.', ephemeral=True)
 
 
 
