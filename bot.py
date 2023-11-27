@@ -30,7 +30,7 @@ activeGuild = discord.Object(id=os.getenv(GUILD_ID))
 
 @client.event
 async def on_ready():
-    if DEBUG:
+    if os.getenv(DEBUG):
         print('[DEBUG] Debug is on.')
     print(f'Logged in as {client.user} (ID: {client.user.id})')
     print("Loading commands...")
