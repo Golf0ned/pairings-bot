@@ -13,9 +13,9 @@ import pairings
 import tournament
 
 load_dotenv()
-TOKEN = 'DISCORD_TOKEN'
-GUILD_ID = 'GUILD_ID'
-DEBUG = 'DEBUG'
+TOKEN = os.getenv('DISCORD_TOKEN')
+GUILD_ID = os.getenv('GUILD_ID')
+DEBUG = int(os.getenv('DEBUG'))
 
 Pairings = pairings.PairingsManager()
 
@@ -24,13 +24,13 @@ client = discord.Client(intents=discord.Intents.all(),
                         activity=discord.Activity(type=discord.ActivityType.watching,
                                                   name="pairings  |  /help"))
 tree = app_commands.CommandTree(client)
-activeGuild = discord.Object(id=os.getenv(GUILD_ID))
+activeGuild = discord.Object(id=GUILD_ID)
 
 
 
 @client.event
 async def on_ready():
-    if os.getenv(DEBUG):
+    if DEBUG:
         print('[DEBUG] Debug is on.')
     print(f'Logged in as {client.user} (ID: {client.user.id})')
     print("Loading commands...")
@@ -44,7 +44,7 @@ async def on_ready():
 
 @tree.command(name="help",
               description="Displays all commands for PairingsBot.",
-              guild=discord.Object(id=os.getenv(GUILD_ID)))
+              guild=activeGuild)
 async def pairingsHelp(interaction):
     commands = [("/help",                                             "Displays all commands for PairingsBot."),
                 ("/configureblasts <school> <channel>",               "Sets the school to filter pairings by and the channel that blasts should be sent to."),
@@ -227,7 +227,7 @@ def randomPairingsMessage():
 
 
 
-if os.getenv(DEBUG):
+if DEBUG:
     @tree.command(name="quickconfig", description="Quick config for testing.", guild=activeGuild)
     async def quickConfig(interaction):
         school = 'SCHOOL_NAME'
@@ -247,4 +247,4 @@ if os.getenv(DEBUG):
 
 
 
-client.run(os.getenv(TOKEN))
+client.run(TOKEN)
