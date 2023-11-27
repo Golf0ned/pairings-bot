@@ -1,5 +1,4 @@
 # bot.py
-import asyncio
 import datetime
 import os
 import random
@@ -13,7 +12,6 @@ from dotenv import load_dotenv
 import pairings
 import tournament
 
-# loads from dotenv
 load_dotenv()
 TOKEN = 'DISCORD_TOKEN'
 GUILD_ID = 'GUILD_ID'
