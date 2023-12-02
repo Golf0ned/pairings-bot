@@ -130,18 +130,20 @@ class TournamentManager():
         
         # prelim
         if round.isnumeric():
-            for row in data:
-                room = row[0]
-                aff = row[1]
-                neg = row[2]
-                judge = row[3]
+            try:
+                for row in data:
+                    room = row[0]
+                    aff = row[1]
+                    neg = row[2]
+                    judge = row[3]
 
-                if self.__school in aff: 
-                    out.append([aff.split()[-1], "Aff", neg, judge, room])
+                    if self.__school in aff: 
+                        out.append([aff.split()[-1], "Aff", neg, judge, room])
 
-                if self.__school in neg:
-                    out.append([neg.split()[-1], "Neg", aff, judge, room])
-
+                    if self.__school in neg:
+                        out.append([neg.split()[-1], "Neg", aff, judge, room])
+            except:
+                pass
         # elim
         else:
             for row in data:
