@@ -52,7 +52,8 @@ async def pairingsHelp(interaction):
                 ("/pairings",                                         "Posts the pairings from the most recent round for all teams."),
                 ("/pairings <team-code>",                             "Post the pairings from the most recent round for a specific team."),
                 ("/startblasts",                                      "Start tournament blasts."),
-                ("/stopblasts",                                       "Stop tournament blasts.")]
+                ("/stopblasts",                                       "Stop tournament blasts."),
+                ("/displayconfig",                                    "Displays all configured settings.")]
 
     embed = discord.Embed(title="Commands",
                           timestamp=datetime.datetime.utcnow(),
@@ -152,7 +153,7 @@ async def blast(interaction, team):
     
     school = Pairings.getSchool()
     roundNum = Pairings.getRoundNumber()
-    roundURL = tournament.getRoundURL(Pairings.getTournamentID(), roundNum)
+    roundURL = Pairings.getRoundURL()
     roundTeams = roundInfo[0]
     roundSides = roundInfo[1]
     roundOpponents = roundInfo[2]

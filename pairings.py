@@ -25,6 +25,8 @@ class PairingsManager():
     def getTournamentID(self): return self.__tournament.getTournamentID()
     def getRoundNumber(self): return self.__tournament.getRoundNumber()
 
+    def getEventID(self): return self.__tournament.getEventID()
+
     def setSchool(self, school : str): self.__school = school
     def getSchool(self): return self.__school
 
@@ -57,6 +59,8 @@ class PairingsManager():
             res.append(row)
         
         return res
+    
+    def getRoundURL(self): return self.__tournament.getRoundURL()
 
     if DEBUG:
         def testBlast(self):

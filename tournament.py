@@ -77,6 +77,7 @@ class TournamentManager():
         self.__eventID = eventID
 
         self.__round = None
+        self.__roundURL = ""
         self.__teams = []
         self.__sides = []
         self.__opponents = []
@@ -88,6 +89,7 @@ class TournamentManager():
     def getTournamentID(self): return self.__tournamentID
     def getEventID(self): return self.__eventID
     def getRoundNumber(self): return self.__round
+    def getRoundURL(self): return self.__roundURL
 
 
 
@@ -105,7 +107,6 @@ class TournamentManager():
         
         roundNum = parseRoundNumber(results[0].string)
         postData = results[0]['href']
-        
 
         # now, get round info
         response = requests.get(f'https://www.tabroom.com/{postData}')
@@ -120,6 +121,7 @@ class TournamentManager():
         filteredData = self.filterPairings(roundData[1:], roundNum)
         if self.updatePairings(filteredData, roundNum):
             self.__round = roundNum
+            self.__roundURL = f'https://www.tabroom.com/{postData}'
             return True
         return False
 
