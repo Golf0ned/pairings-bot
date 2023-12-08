@@ -71,6 +71,15 @@ Both `tournament-id` and `event-id` can be found in the URL of the entries in th
 
 <img width="923" alt="image" src="https://github.com/Golf0ned/pairings-bot/assets/60253050/8e89f6b1-882c-4025-9fe6-f31ae3727524">
 
+### Display Config
+```
+/displayconfig
+```
+
+Displays all configured settings. If a specific section isn't configured, tells which section isn't configured.
+
+(Insert screenshot here)
+
 ### Pairings
 ```
 /pairings <optional team-code>
