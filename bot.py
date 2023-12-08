@@ -191,6 +191,22 @@ async def blast(interaction, team):
 
 
 
+@tree.command(name="displayconfig", description="Displays all configured settings.", guild=activeGuild)
+async def displayConfig(interaction):
+    if not Pairings.getSchool():
+        await interaction.response.send_message('You haven\'t configured server settings yet---use `/configureblasts` first. :confounded:', ephemeral=True)
+    if not Pairings.hasTournament():
+        await interaction.response.send_message('You haven\'t configured a tournament yet---use `/configuretournament` first. :worried:', ephemeral=True)
+
+    school = Pairings.getSchool()
+    channel = client.get_channel(int(Pairings.getBlastChannel())).mention
+    tournamentID = Pairings.getTournamentID()
+    eventID = Pairings.getEventID()
+
+    await interaction.response.send_message(f'School: `{school}`\nChannel: {channel}\nTournament ID: `{tournamentID}`\nEvent ID: `{eventID}`', ephemeral=True)
+
+
+
 def isValidChannel(id : str):
     try:
         if not (client.get_channel(int(id))): raise Exception()
