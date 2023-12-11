@@ -166,7 +166,7 @@ async def blast(interaction, team):
     if not team:
         embed.title = f'All Pairings (Round {roundNum})'
         for i in range(len(roundTeams)):
-            val = f'{roundSides[i]} vs. {roundOpponents[i]}\n{roundJudges[i]}\n{roundRooms[i]}'
+            val = f'{roundSides[i]} vs. {roundOpponents[i]}\nJudge(s): {roundJudges[i]}\nRoom: {roundRooms[i]}'
             embed.add_field(name=f'{Pairings.getSchool()} {roundTeams[i]}', value=val, inline=False)
 
     # Specific team code
@@ -177,7 +177,7 @@ async def blast(interaction, team):
             return
 
         embed.title = f'Pairing for {school} {team.upper()} (Round {roundNum})'
-        val = f'{roundJudges[index]}\n{roundRooms[index]}'
+        val = f'Judge(s): {roundJudges[index]}\nRoom: {roundRooms[index]}'
         embed.add_field(name=f'{roundSides[index]} vs. {roundOpponents[index]}', value=val, inline=False)
     
     embed.set_footer(text=randomPairingsMessage())
