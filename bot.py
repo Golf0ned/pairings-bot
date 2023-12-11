@@ -77,7 +77,7 @@ async def configureBlasts(interaction, school : str, channel : discord.TextChann
         return
     Pairings.setSchool(school)
     Pairings.setBlastChannel(channelid)
-    if Pairings.hasTournament:
+    if Pairings.hasTournament():
         await interaction.response.send_message(f'Sending blasts for **{school}** to {client.get_channel(int(channelid)).mention}. :sunglasses:\nRemember to reconfigure the tournament!', ephemeral=True)
     else:
         await interaction.response.send_message(f'Sending blasts for **{school}** to {client.get_channel(int(channelid)).mention}. :sunglasses:', ephemeral=True)
