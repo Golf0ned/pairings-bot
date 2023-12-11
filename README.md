@@ -117,7 +117,8 @@ Stops tournament blasts.
 
 <img width="240" alt="image" src="https://github.com/Golf0ned/pairings-bot/assets/60253050/649d76d1-c920-4d53-aab1-b310e42b64bc">
 
-## Getting Started
-Will be up ASAP!
+## Getting Started/Setup
 
-(still wip, soz :/)
+This bot was not written for public use. As such, it most likely won't get formal Discord verification. If enough people use it and I get an angry email from Palmer, I'll rewrite it to be public.
+
+For those who are interested in using this bot for their own teams, download the most recent package on the repo, update the `.env` file, and host through whichever service you fancy. I used Railway via GitHub repo.
