@@ -129,7 +129,6 @@ class TournamentManager():
             for row in results:
                 cols = row.findAll('td')
                 roundData.append([cell.text.strip() for cell in cols])
-        print(roundData)
 
         # filter and blast
         filteredData = self.filterPairings(roundData[1:], roundNum)
@@ -166,7 +165,7 @@ class TournamentManager():
                 room = row[0]
                 side1 = row[1]
                 side2 = row[2]
-                judges = ', '.join(row[3:])
+                judges = ', '.join(row[3:]).replace('\n', '')
 
                 if self.__school in side1:
                     if "Locked" in side1:
