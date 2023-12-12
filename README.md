@@ -121,4 +121,6 @@ Stops tournament blasts.
 
 This bot was not written for public use. As such, it most likely won't get formal Discord verification. If enough people use it and I get an angry email from Palmer, I'll rewrite it to be public.
 
-For those who are interested in using this bot for their own teams, download the most recent package on the repo, update the `.env` file, and host through whichever service you fancy. I used Railway via GitHub repo.
+For those who are interested in using this bot for their own teams, download the most recent package on the repo, update the `.env` file, and host through whichever service you fancy.
+
+I personally used Railway via GitHub repo. Here's a template link (note the referral code---feel free to remove): https://railway.app/template/JabnMS?referralCode=gV3U7a
