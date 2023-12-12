@@ -111,13 +111,27 @@ class TournamentManager():
         # now, get round info
         response = requests.get(f'https://www.tabroom.com/{postData}')
         soup = BeautifulSoup(response.content, "html.parser")
-
+        hasONL = 'ONL' in soup.get_text()
+        
+        # tableize data
         roundData = []
         results = soup.findAll('tr')
-        for row in results:
-            cols = row.findAll('td')
-            roundData.append([cell.text.strip() for cell in cols])
 
+        if hasONL:
+            for row in results:
+                cols = row.findAll('td')
+                newRow = []
+                for cellInd in range(len(cols)):
+                    if cellInd != 1:
+                        newRow.append(cols[cellInd].text.strip())
+                roundData.append(newRow)
+        else:
+            for row in results:
+                cols = row.findAll('td')
+                roundData.append([cell.text.strip() for cell in cols])
+        print(roundData)
+
+        # filter and blast
         filteredData = self.filterPairings(roundData[1:], roundNum)
         if self.updatePairings(filteredData, roundNum):
             self.__round = roundNum
