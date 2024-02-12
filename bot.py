@@ -150,6 +150,7 @@ async def blast(interaction, team):
         return
     
     roundInfo = Pairings.getRoundInfo()
+    print(roundInfo)
     if interaction and not roundInfo:
         await interaction.response.send_message('Round isn\'t out yet. :yawning_face:', ephemeral=True)
         return
@@ -169,7 +170,16 @@ async def blast(interaction, team):
     if not team:
         embed.title = f'All Pairings (Round {roundNum})'
         for i in range(len(roundTeams)):
-            val = f'{roundSides[i]} vs. {roundOpponents[i]}\nJudge(s): {roundJudges[i]}\nRoom: {roundRooms[i]}'
+            # basic team info
+            val = f'{roundSides[i]} vs. [{roundOpponents[i][0]}]({roundOpponents[i][1]})\nJudge(s): '
+            # add each judge
+            for judge, paradigm in roundJudges[i]:
+                val += f'[{judge}]({paradigm}), '
+            # remove awkward final comma
+            val = val[:-2]
+            # add room
+            val += f'\nRoom: {roundRooms[i]}'
+            # add to embed
             embed.add_field(name=f'{Pairings.getSchool()} {roundTeams[i]}', value=val, inline=False)
 
     # Specific team code

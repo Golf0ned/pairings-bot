@@ -117,18 +117,24 @@ class TournamentManager():
         roundData = []
         results = soup.findAll('tr')
 
-        if hasONL:
-            for row in results:
-                cols = row.findAll('td')
-                newRow = []
-                for cellInd in range(len(cols)):
-                    if cellInd != 1:
-                        newRow.append(cols[cellInd].text.strip())
-                roundData.append(newRow)
-        else:
-            for row in results:
-                cols = row.findAll('td')
-                roundData.append([cell.text.strip() for cell in cols])
+        for row in results:
+            cols = row.findAll('td')
+            newRow = []
+            for cellInd in range(len(cols)):
+                # skip if online column
+                if hasONL and cellInd == 1:
+                    continue
+                # get text of cell
+                newRow.append(cols[cellInd].text.strip())
+                # get url of cell, if applicable
+                url = cols[cellInd].contents[1].get('href')
+                if url: 
+                    if url[0:6] == '/index': # tournament entry
+                        newRow.append(f'https://www.tabroom.com{url}')
+                    else: # judge paradigm
+                        newRow.append(f'https://www.tabroom.com/index/tourn/postings/{url}')
+
+            roundData.append(newRow)
 
         # filter and blast
         filteredData = self.filterPairings(roundData[1:], roundNum)
@@ -149,14 +155,25 @@ class TournamentManager():
                 for row in data:
                     room = row[0]
                     aff = row[1]
-                    neg = row[2]
-                    judge = row[3]
+                    affPage = row[2]
+                    neg = row[3]
+                    negPage = row[4]
+                    judge = row[5]
+                    judgePage = row[6]
 
                     if self.__school in aff: 
-                        out.append([' '.join(aff.split()[1:]), "Aff", neg, judge, room])
+                        out.append([' '.join(aff.split()[1:]),
+                                    "Aff",
+                                    (neg, negPage),
+                                    [(judge, judgePage)],
+                                    room])
 
                     if self.__school in neg:
-                        out.append([' '.join(neg.split()[1:]), "Neg", aff, judge, room])
+                        out.append([' '.join(neg.split()[1:]),
+                                    "Neg",
+                                    (aff, affPage),
+                                    [(judge, judgePage)],
+                                    room])
             except:
                 pass
         # elim
@@ -164,20 +181,39 @@ class TournamentManager():
             for row in data:
                 room = row[0]
                 side1 = row[1]
-                side2 = row[2]
-                judges = ', '.join(row[3:]).replace('\n', '')
-                print(row)
+                side1Page = row[2]
+                side2 = row[3]
+                side2Page = row[4]
+                judges = row[5::2] # odd from 5-onwards
+                judgePages = row[6::2] # even from 6-onwards
 
                 if self.__school in side1:
                     if "Locked" in side1:
-                        out.append([' '.join(side1.split()[1:-2]), side1.split()[-1], ' '.join(side2.split()[:-2]), judges, room])
+                        out.append([' '.join(side1.split()[1:-2]),
+                                    side1.split()[-1],
+                                    (' '.join(side2.split()[:-2]), side2Page),
+                                    list(zip(judges, judgePages)),
+                                    room])
                     else:
-                        out.append([' '.join(side1.split()[1:]), "Flip", side2, judges, room])
+                        out.append([' '.join(side1.split()[1:]),
+                                    "Flip",
+                                    (side2, side2Page),
+                                    list(zip(judges, judgePages)),
+                                    room])
+                        
                 if self.__school in side2:
                     if "Locked" in side2:
-                        out.append([' '.join(side2.split()[1:-2]), side2.split()[-1], ' '.join(side1.split()[:-2]), judges, room])
+                        out.append([' '.join(side2.split()[1:-2]),
+                                    side2.split()[-1],
+                                    (' '.join(side1.split()[:-2]), side1Page),
+                                    list(zip(judges, judgePages)),
+                                    room])
                     else:
-                        out.append([' '.join(side2.split()[1:]), "Flip", side1, judges, room])
+                        out.append([' '.join(side2.split()[1:]),
+                                    "Flip",
+                                    (side1, side1Page),
+                                    list(zip(judges, judgePages)),
+                                    room])
 
         return sorted(out)
 
