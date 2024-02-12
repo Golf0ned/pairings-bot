@@ -153,10 +153,10 @@ class TournamentManager():
                     judge = row[3]
 
                     if self.__school in aff: 
-                        out.append([aff.split()[-1], "Aff", neg, judge, room])
+                        out.append([' '.join(aff.split()[1:]), "Aff", neg, judge, room])
 
                     if self.__school in neg:
-                        out.append([neg.split()[-1], "Neg", aff, judge, room])
+                        out.append([' '.join(neg.split()[1:]), "Neg", aff, judge, room])
             except:
                 pass
         # elim
@@ -166,17 +166,18 @@ class TournamentManager():
                 side1 = row[1]
                 side2 = row[2]
                 judges = ', '.join(row[3:]).replace('\n', '')
+                print(row)
 
                 if self.__school in side1:
                     if "Locked" in side1:
-                        out.append([side1.split()[-3], side1.split()[-1], ' '.join(side2.split()[:-2]), judges, room])
+                        out.append([' '.join(side1.split()[1:-2]), side1.split()[-1], ' '.join(side2.split()[:-2]), judges, room])
                     else:
-                        out.append([side1.split()[-1], "Flip", side2, judges, room])
+                        out.append([' '.join(side1.split()[1:]), "Flip", side2, judges, room])
                 if self.__school in side2:
                     if "Locked" in side2:
-                        out.append([side2.split()[-3], side2.split()[-1], ' '.join(side1.split()[:-2]), judges, room])
+                        out.append([' '.join(side2.split()[1:-2]), side2.split()[-1], ' '.join(side1.split()[:-2]), judges, room])
                     else:
-                        out.append([side2.split()[-1], "Flip", side1, judges, room])
+                        out.append([' '.join(side2.split()[1:]), "Flip", side1, judges, room])
 
         return sorted(out)
 

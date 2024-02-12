@@ -250,15 +250,16 @@ def randomPairingsMessage():
 if DEBUG:
     @tree.command(name="quickconfig", description="Quick config for testing.", guild=activeGuild)
     async def quickConfig(interaction):
-        school = 'SCHOOL_NAME'
-        channelid = 'CHANNEL_ID'
-        tournamentid = 'TOURNAMENT_ID'
-        eventid = 'EVENT_ID'
+        school = 'Northwestern'
+        channelid = '1175658371257475163'
+        tournamentid = '29623'
+        eventid = '273562'
 
         Pairings.setSchool(school)
         Pairings.setBlastChannel(channelid)
         Pairings.initTournament(tournamentid, eventid)
         await interaction.response.send_message('[DEBUG] Quick configured!', ephemeral=True)
+        print(f'school: {school}\nchannelid: {channelid}\ntournamentid: {tournamentid}\neventid: {eventid}\n')
 
     @tree.command(name="testblast", description="Test for blast received.", guild=activeGuild)
     async def testBlast(interaction):
