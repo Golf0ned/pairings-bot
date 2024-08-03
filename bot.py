@@ -46,13 +46,11 @@ async def on_ready():
               guild=activeGuild)
 async def pairingsHelp(interaction):
     commands = [("/help",                                             "Displays all commands for PairingsBot."),
-                ("/configureblasts <school> <channel>",               "Sets the school to filter pairings by and the channel that blasts should be sent to."),
-                ("/configuretournaments <tournament-id> <event-id>",  "Sets the tournament to blast pairings from and the event."),
+                ("/configure <tournament-url>",  "Sets the tournament to blast pairings from and the event in the current channel."),
                 ("/pairings",                                         "Posts the pairings from the most recent round for all teams."),
                 ("/pairings <team-code>",                             "Post the pairings from the most recent round for a specific team."),
                 ("/startblasts",                                      "Start tournament blasts."),
-                ("/stopblasts",                                       "Stop tournament blasts."),
-                ("/displayconfig",                                    "Displays all configured settings.")]
+                ("/stopblasts",                                       "Stop tournament blasts.")]
 
     embed = discord.Embed(title="Commands",
                           timestamp=datetime.datetime.utcnow(),
@@ -200,22 +198,6 @@ async def blast(interaction, team):
         channel = client.get_channel(int(Pairings.getBlastChannel()))
         await channel.send(f'@everyone Pairings are out for round {roundNum}!')
         await channel.send(embed=embed)
-
-
-
-@tree.command(name="displayconfig", description="Displays all configured settings.", guild=activeGuild)
-async def displayConfig(interaction):
-    if not Pairings.getSchool():
-        await interaction.response.send_message('You haven\'t configured server settings yet---use `/configureblasts` first. :confounded:', ephemeral=True)
-    if not Pairings.hasTournament():
-        await interaction.response.send_message('You haven\'t configured a tournament yet---use `/configuretournament` first. :worried:', ephemeral=True)
-
-    school = Pairings.getSchool()
-    channel = client.get_channel(int(Pairings.getBlastChannel())).mention
-    tournamentID = Pairings.getTournamentID()
-    eventID = Pairings.getEventID()
-
-    await interaction.response.send_message(f'School: `{school}`\nChannel: {channel}\nTournament ID: `{tournamentID}`\nEvent ID: `{eventID}`', ephemeral=True)
 
 
 
