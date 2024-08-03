@@ -3,7 +3,7 @@ import os
 
 from dotenv import load_dotenv
 
-import tournament
+from src import tournament
 
 load_dotenv()
 DEBUG = int(os.getenv('DEBUG'))

@@ -9,8 +9,7 @@ from discord import app_commands
 from discord.ext import tasks
 from dotenv import load_dotenv
 
-import pairings
-import tournament
+from src import pairings, tournament
 
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
