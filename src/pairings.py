@@ -13,12 +13,13 @@ class PairingsManager():
     def __init__(self):
         self.__tournament = None
         self.__school = ''
+        self.__judges = []
         self.__blastChannel = ''
         self.__blasting = False
         self.__hasBlast = False
 
     def initTournament(self, tournamentID, eventID):
-        self.__tournament = tournament.TournamentManager(self.__school, tournamentID, eventID)
+        self.__tournament = tournament.TournamentManager(self.__school, self.__judges, tournamentID, eventID)
     
     def hasTournament(self): 
         return True if self.__tournament else False
@@ -29,6 +30,9 @@ class PairingsManager():
 
     def setSchool(self, school : str): self.__school = school
     def getSchool(self): return self.__school
+
+    def setJudges(self, judges : list[str]): self.__judges = judges
+    def getJudges(self): return self.__judges
 
     def isBlasting(self): return self.__blasting
 
@@ -52,14 +56,8 @@ class PairingsManager():
 
 
     def getRoundInfo(self):
-        data = self.__tournament.getTournamentRound()
+        return self.__tournament.getTournamentRound()
 
-        res = []
-        for row in data:
-            res.append(row)
-        
-        return res
-    
     def getRoundURL(self): return self.__tournament.getRoundURL()
 
     if DEBUG:

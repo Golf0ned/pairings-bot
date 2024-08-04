@@ -54,7 +54,6 @@ def isValidEvent(tournamentID, eventID):
     soup = BeautifulSoup(response.content, "html.parser")
 
     text = ' '.join(soup.get_text().split())
-    print(text)
 
     return not ('Invalid event ID or URL' in text) and not ('This event\'s field is not published by the tournament' in text)
 
@@ -71,19 +70,25 @@ def parseRoundNumber(round):
 
 class TournamentManager():
 
-    def __init__(self, school, tournamentID, eventID):
+    def __init__(self, school, judges, tournamentID, eventID):
         self.__school = school
         self.__tournamentID = tournamentID
         self.__eventID = eventID
 
         self.__round = None
         self.__roundURL = ""
+
         self.__teams = []
         self.__sides = []
         self.__opponents = []
         self.__judges = []
         self.__rooms = []
 
+        self.__teamJudges = sorted(judges)
+        self.__teamJudgePanels = []
+        self.__judgeTeam1 = []
+        self.__judgeTeam2 = []
+        self.__judgeRooms = []
 
 
     def getTournamentID(self): return self.__tournamentID
@@ -108,6 +113,10 @@ class TournamentManager():
         roundNum = parseRoundNumber(results[0].string)
         postData = results[0]['href']
 
+        # TEST DATA
+        roundNum = '1'
+        postData = 'index/tourn/postings/round.mhtml?tourn_id=30545&round_id=1139574'
+
         # now, get round info
         response = requests.get(f'https://www.tabroom.com/{postData}')
         soup = BeautifulSoup(response.content, "html.parser")
@@ -127,12 +136,16 @@ class TournamentManager():
                 # get text of cell
                 newRow.append(cols[cellInd].text.strip())
                 # get url of cell, if applicable
-                url = cols[cellInd].contents[1].get('href')
-                if url: 
-                    if url[0:6] == '/index': # tournament entry
-                        newRow.append(f'https://www.tabroom.com{url}')
-                    else: # judge paradigm
-                        newRow.append(f'https://www.tabroom.com/index/tourn/postings/{url}')
+                try:
+                    url = cols[cellInd].contents[1].get('href')
+                    if url: 
+                        if url[0:6] == '/index': # tournament entry
+                            newRow.append(f'https://www.tabroom.com{url}')
+                        else: # judge paradigm
+                            newRow.append(f'https://www.tabroom.com/index/tourn/postings/{url}')
+                except Exception as e:
+                    # print(e)
+                    pass
 
             roundData.append(newRow)
 
@@ -147,7 +160,8 @@ class TournamentManager():
 
 
     def filterPairings(self, data, round):
-        out = []
+        outCompetitors = []
+        outJudges = []
         
         # prelim
         if round.isnumeric():
@@ -158,22 +172,26 @@ class TournamentManager():
                     affPage = row[2]
                     neg = row[3]
                     negPage = row[4]
-                    judge = row[5]
+                    judge = ' '.join(row[5].split())
                     judgePage = row[6]
 
                     if self.__school in aff: 
-                        out.append([' '.join(aff.split()[1:]),
+                        outCompetitors.append([' '.join(aff.split()[1:]),
                                     "Aff",
                                     (neg, negPage),
                                     [(judge, judgePage)],
                                     room])
 
                     if self.__school in neg:
-                        out.append([' '.join(neg.split()[1:]),
+                        outCompetitors.append([' '.join(neg.split()[1:]),
                                     "Neg",
                                     (aff, affPage),
                                     [(judge, judgePage)],
                                     room])
+
+                    for j in self.__teamJudges:
+                        if j in judge:
+                            outJudges.append([judge, [judge], aff, neg, room])
             except:
                 pass
         # elim
@@ -186,16 +204,19 @@ class TournamentManager():
                 side2Page = row[4]
                 judges = row[5::2] # odd from 5-onwards
                 judgePages = row[6::2] # even from 6-onwards
+                
+                for i in range(len(judges)):
+                    judges[i] = ' '.join(judges[i].split())
 
                 if self.__school in side1:
                     if "Locked" in side1:
-                        out.append([' '.join(side1.split()[1:-2]),
+                        outCompetitors.append([' '.join(side1.split()[1:-2]),
                                     side1.split()[-1],
                                     (' '.join(side2.split()[:-2]), side2Page),
                                     list(zip(judges, judgePages)),
                                     room])
                     else:
-                        out.append([' '.join(side1.split()[1:]),
+                        outCompetitors.append([' '.join(side1.split()[1:]),
                                     "Flip",
                                     (side2, side2Page),
                                     list(zip(judges, judgePages)),
@@ -203,60 +224,88 @@ class TournamentManager():
                         
                 if self.__school in side2:
                     if "Locked" in side2:
-                        out.append([' '.join(side2.split()[1:-2]),
+                        outCompetitors.append([' '.join(side2.split()[1:-2]),
                                     side2.split()[-1],
                                     (' '.join(side1.split()[:-2]), side1Page),
                                     list(zip(judges, judgePages)),
                                     room])
                     else:
-                        out.append([' '.join(side2.split()[1:]),
+                        outCompetitors.append([' '.join(side2.split()[1:]),
                                     "Flip",
                                     (side1, side1Page),
                                     list(zip(judges, judgePages)),
                                     room])
-
-        return sorted(out)
+                for j1 in judges:
+                    for j2 in self.__teamJudges:
+                        if j2 in j1:
+                            outJudges.append([j2, judges, side1, side2, room])
+        
+        return [sorted(outCompetitors), sorted(outJudges)]
 
 
 
     def updatePairings(self, data, newRound):
         try:
-            newTeams = []
-            newSides = []
-            newOpponents = []
-            newJudges = []
-            newRooms = []
-
-            for row in data:
-                newTeams.append(row[0])
-                newSides.append(row[1])
-                newOpponents.append(row[2])
-                newJudges.append(row[3])
-                newRooms.append(row[4])
             
-            if self.validBlast(newRound, newTeams, newOpponents, newJudges, newRooms):
-                self.__teams = newTeams
-                self.__sides = newSides
-                self.__opponents = newOpponents
-                self.__judges = newJudges
-                self.__rooms = newRooms
+            # competitors
+            newCompetitorTeams = []
+            newCompetitorSides = []
+            newCompetitorOpponents = []
+            newCompetitorJudges = []
+            newCompetitorRooms = []
+            for row in data[0]:
+                newCompetitorTeams.append(row[0])
+                newCompetitorSides.append(row[1])
+                newCompetitorOpponents.append(row[2])
+                newCompetitorJudges.append(row[3])
+                newCompetitorRooms.append(row[4])
+
+            # judges
+            newSchoolJudges = []
+            newJudgePanels = []
+            newJudgeTeam1 = []
+            newJudgeTeam2 = []
+            newJudgeRooms = []
+            for row in data[1]:
+                newSchoolJudges.append(row[0])
+                newJudgePanels.append(row[1])
+                newJudgeTeam1.append(row[2])
+                newJudgeTeam2.append(row[3])
+                newJudgeRooms.append(row[4])
+
+            newRoundData = (newCompetitorTeams, newCompetitorOpponents, newCompetitorJudges, newCompetitorRooms,
+                            newSchoolJudges, newJudgePanels, newJudgeTeam1, newJudgeTeam2, newJudgeRooms)
+            if self.validBlast(newRound, newRoundData):
+                self.__teams = newCompetitorTeams
+                self.__sides = newCompetitorSides
+                self.__opponents = newCompetitorOpponents
+                self.__judges = newCompetitorJudges
+                self.__rooms = newCompetitorRooms
+
+                self.__teamJudges = newSchoolJudges
+                self.__teamJudgePanels = newJudgePanels
+                self.__judgeTeam1 = newJudgeTeam1
+                self.__judgeTeam2 = newJudgeTeam2
+                self.__judgeRooms = newJudgeRooms
+
                 return True
             return False
-        except:
+        except Exception as e:
             print("Tried to get pairings: Tab error occured")
+            print(e)
             return False
 
 
 
-    def validBlast(self, newRound, teams, opponents, judges, rooms):
+    def validBlast(self, newRound, data):
         # new round: blast
         if ROUNDENUM[newRound] > ROUNDENUM[self.__round]:
             return True
         # same round: blast if different opponents, judges, or rooms BUT only if not less
         elif ROUNDENUM[newRound] == ROUNDENUM[self.__round]:
-            if len(teams) < len(self.__teams) or len([o for o in opponents if o]) < len(self.__opponents):
+            if len(data[0]) < len(self.__teams) or len([o for o in data[1] if o]) < len(self.__opponents) or len([o for o in data[5] if o]) < len(self.__judgeTeam1) or len([o for o in data[6] if o]) < len(self.__judgeTeam2):
                 return False
-            elif (self.__opponents != opponents or self.__judges != judges or self.__rooms != rooms):
+            elif (self.__opponents != data[1] or self.__judges != data[2] or self.__rooms != data[3] or self.__teamJudgePanels != data[5] or self.__judgeTeam1 != data[6] or self.__judgeTeam2 != data[7] or self.__judgeRooms != data[8]):
                 return True
         # older round: don't blast
         return False
@@ -264,8 +313,5 @@ class TournamentManager():
 
 
     def getTournamentRound(self):
-        return[self.__teams,
-               self.__sides,
-               self.__opponents,
-               self.__judges,
-               self.__rooms]
+        return [[self.__teams, self.__sides, self.__opponents, self.__judges, self.__rooms],
+                [self.__teamJudges, self.__teamJudgePanels, self.__judgeTeam1, self.__judgeTeam2, self.__judgeRooms]]

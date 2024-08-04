@@ -14,6 +14,10 @@ from src import pairings, tournament
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
 GUILD_ID = os.getenv('GUILD_ID')
+
+SCHOOL = os.getenv('SCHOOL')
+JUDGES = os.getenv('JUDGES').split(',')
+
 DEBUG = int(os.getenv('DEBUG'))
 
 Pairings = pairings.PairingsManager()
@@ -45,17 +49,17 @@ async def on_ready():
               description="Displays all commands for PairingsBot.",
               guild=activeGuild)
 async def pairingsHelp(interaction):
-    commands = [("/help",                                             "Displays all commands for PairingsBot."),
-                ("/configure <tournament-url>",  "Sets the tournament to blast pairings from and the event in the current channel."),
-                ("/pairings",                                         "Posts the pairings from the most recent round for all teams."),
-                ("/pairings <team-code>",                             "Post the pairings from the most recent round for a specific team."),
-                ("/startblasts",                                      "Start tournament blasts."),
-                ("/stopblasts",                                       "Stop tournament blasts.")]
+    commands = [("/help",                       "Displays all commands for PairingsBot."),
+                ("/configure <tournament-url>", "Sets the tournament to blast pairings from and the event in the current channel."),
+                ("/pairings",                   "Posts the pairings from the most recent round for all teams."),
+                ("/pairings <team-code>",       "Post the pairings from the most recent round for a specific team."),
+                ("/startblasts",                "Start tournament blasts."),
+                ("/stopblasts",                 "Stop tournament blasts.")]
 
     embed = discord.Embed(title="Commands",
                           timestamp=datetime.datetime.utcnow(),
                           color=0x4E2A84)
-    embed.set_footer(text="PairingsBot made by Golf0ned")
+    embed.set_footer(text="PairingsBot made by @Golf0ned")
     
     for i in range(len(commands)):
         embed.add_field(name=commands[i][0], value=commands[i][1], inline=False)
@@ -64,36 +68,26 @@ async def pairingsHelp(interaction):
 
 
 
-@tree.command(name="configureblasts",
-              description="Sets the school to filter pairings by and the channel that blasts should be sent to.",
+@tree.command(name="configure",
+              description="Sets the tournament and event to blast pairings from in the current channel.",
               guild=activeGuild)
-async def configureBlasts(interaction, school : str, channel : discord.TextChannel):
-    channelid = channel.id
-    if not isValidChannel(channelid):
-        await interaction.response.send_message(f'{channel} isn\'t a valid channel. :smiling_face_with_tear:', ephemeral=True)
+async def configure(interaction, url : str):
+    # filter url first. a bit hacky but im tired
+    try:
+        split = url.replace('&', '=').split('=')
+        tournID, eventID = split[1], split[3]
+        if not tournament.isValidEvent(tournID, eventID): raise Exception()
+    except:
+        await interaction.response.send_message(f'Invalid URL ({url}). :sweat:', ephemeral=True)
         return
-    Pairings.setSchool(school)
+
+    # actual config stuff
+    channelid = interaction.channel_id
+    Pairings.setSchool(SCHOOL)
+    Pairings.setJudges(JUDGES)
     Pairings.setBlastChannel(channelid)
-    if Pairings.hasTournament():
-        await interaction.response.send_message(f'Sending blasts for **{school}** to {client.get_channel(int(channelid)).mention}. :sunglasses:\nRemember to reconfigure the tournament!', ephemeral=True)
-    else:
-        await interaction.response.send_message(f'Sending blasts for **{school}** to {client.get_channel(int(channelid)).mention}. :sunglasses:', ephemeral=True)
-
-
-
-@tree.command(name="configuretournament", description="Sets the tournament and event to blast pairings from.", guild=activeGuild)
-async def configureTournament(interaction, tournamentid : str, eventid : str):
-    if not Pairings.getBlastChannel():
-        await interaction.response.send_message('Your blasts aren\'t configured---use `/configureblasts` first. :face_in_clouds:', ephemeral=True)
-        return
-    if not tournament.isValidTournament(tournamentid):
-        await interaction.response.send_message(f'{tournamentid} isn\'t a valid tournament id. :sweat:', ephemeral=True)
-        return
-    if not tournament.isValidEvent(tournamentid, eventid):
-        await interaction.response.send_message(f'{eventid} isn\'t a valid event id. :anguished:', ephemeral=True)
-        return
-    Pairings.initTournament(tournamentid, eventid)
-    await interaction.response.send_message(f'Tournament configured! :trophy:\n(Tournament ID: **{tournamentid}**, Event ID: **{eventid}**)\n', ephemeral=True)
+    Pairings.initTournament(tournID, eventID)
+    await interaction.response.send_message(f'Tournament configured! :trophy:\n(Tournament ID: **{tournID}**, Event ID: **{eventID}**)', ephemeral = True)
 
 
 
@@ -110,7 +104,7 @@ async def startBlasts(interaction):
         await interaction.response.send_message('Blasts already started! :nerd:', ephemeral=True)
         return
     if not isValidChannel(Pairings.getBlastChannel()):
-        await interaction.response.send_message('You haven\'t set a valid channel id. :sob:', ephemeral=True)
+        await interaction.response.send_message('Tournament not configured. :sob:', ephemeral=True)
         return
     Pairings.startBlasting()
     await client.change_presence(status=discord.Status.online,
@@ -143,7 +137,7 @@ async def blastHandler():
 
 async def blast(interaction, team):
     if interaction and not Pairings.hasTournament():
-        await interaction.response.send_message('Tournament isn\'t configured---use `/configuretournament` first. :disappointed_relieved:', ephemeral=True)
+        await interaction.response.send_message('Tournament isn\'t configured---use `/configure` first. :disappointed_relieved:', ephemeral=True)
         return
     
     roundInfo = Pairings.getRoundInfo()
@@ -155,29 +149,46 @@ async def blast(interaction, team):
     school = Pairings.getSchool()
     roundNum = Pairings.getRoundNumber()
     roundURL = Pairings.getRoundURL()
-    roundTeams = roundInfo[0]
-    roundSides = roundInfo[1]
-    roundOpponents = roundInfo[2]
-    roundJudges = roundInfo[3]
-    roundRooms = roundInfo[4]
+
+    debaterTeams = roundInfo[0][0]
+    debaterSides = roundInfo[0][1]
+    debaterOpponents = roundInfo[0][2]
+    debaterJudges = roundInfo[0][3]
+    debaterRooms = roundInfo[0][4]
+
+    judgeNames = roundInfo[1][0]
+    judgePanels = roundInfo[1][1]
+    judgeTeam1 = roundInfo[1][2]
+    judgeTeam2 = roundInfo[1][3]
+    judgeRooms = roundInfo[1][4]
 
     embed = discord.Embed(title="", url=roundURL, timestamp=datetime.datetime.utcnow(), color=0x4E2A84)
     
     # All pairings
     if not team:
         embed.title = f'All Pairings (Round {roundNum})'
-        for i in range(len(roundTeams)):
+        for i in range(len(debaterTeams)):
             # basic team info
-            val = f'{roundSides[i]} vs. [{roundOpponents[i][0]}]({roundOpponents[i][1]})\nJudge(s): '
+            val = f'{debaterSides[i]} vs. [{debaterOpponents[i][0]}]({debaterOpponents[i][1]})\nJudge(s): '
             # add each judge
-            for judge, paradigm in roundJudges[i]:
+            for judge, paradigm in debaterJudges[i]:
                 val += f'[{judge}]({paradigm}), '
             # remove awkward final comma
             val = val[:-2]
             # add room
-            val += f'\nRoom: {roundRooms[i]}'
+            val += f'\nRoom: {debaterRooms[i]}'
             # add to embed
-            embed.add_field(name=f'{Pairings.getSchool()} {roundTeams[i]}', value=val, inline=False)
+            embed.add_field(name=f'{Pairings.getSchool()} {debaterTeams[i]}', value=val, inline=False)
+        for i in range(len(judgeNames)):
+            # competitors
+            val = f'{judgeTeam1[i]} vs. {judgeTeam2[i]}\n'
+            # rest of panel, if existent
+            if len(judgePanels[i]) != 1:
+                val += f'Panel: {", ".join(judge for judge in judgePanels[i])}\n'
+            # room
+            val += f'Room: {judgeRooms[i]}'
+            # add to embed
+            embed.add_field(name=f'[Judge] {judgeNames[i]}', value=val, inline=False)
 
     # Specific team code
     else:
@@ -256,7 +267,6 @@ if DEBUG:
     async def testBlast(interaction):
         Pairings.testBlast()
         await interaction.response.send_message('[DEBUG] Testing blast.', ephemeral=True)
-
 
 
 client.run(TOKEN)
