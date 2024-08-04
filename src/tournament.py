@@ -113,10 +113,6 @@ class TournamentManager():
         roundNum = parseRoundNumber(results[0].string)
         postData = results[0]['href']
 
-        # TEST DATA
-        roundNum = '1'
-        postData = 'index/tourn/postings/round.mhtml?tourn_id=30545&round_id=1139574'
-
         # now, get round info
         response = requests.get(f'https://www.tabroom.com/{postData}')
         soup = BeautifulSoup(response.content, "html.parser")
