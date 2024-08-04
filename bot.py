@@ -57,7 +57,7 @@ async def pairingsHelp(interaction):
                 ("/stopblasts",                 "Stop tournament blasts.")]
 
     embed = discord.Embed(title="Commands",
-                          timestamp=datetime.datetime.utcnow(),
+                          timestamp=datetime.datetime.now(datetime.timezone.utc),
                           color=0x4E2A84)
     embed.set_footer(text="PairingsBot made by @Golf0ned")
     
@@ -141,7 +141,7 @@ async def blast(interaction, team):
         return
     
     roundInfo = Pairings.getRoundInfo()
-    print(roundInfo)
+    # print(roundInfo)
     if interaction and not roundInfo:
         await interaction.response.send_message('Round isn\'t out yet. :yawning_face:', ephemeral=True)
         return
@@ -162,7 +162,9 @@ async def blast(interaction, team):
     judgeTeam2 = roundInfo[1][3]
     judgeRooms = roundInfo[1][4]
 
-    embed = discord.Embed(title="", url=roundURL, timestamp=datetime.datetime.utcnow(), color=0x4E2A84)
+    embed = discord.Embed(title="", url=roundURL,
+                          timestamp=datetime.datetime.now(datetime.timezone.utc),
+                          color=0x4E2A84)
     
     # All pairings
     if not team:
