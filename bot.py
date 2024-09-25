@@ -1,274 +1,193 @@
-# bot.py
 import datetime
 import os
 import random
-import typing
 
 import discord
-from discord import app_commands
 from discord.ext import tasks
 from dotenv import load_dotenv
 
-from src import pairings, tournament
+from src import tabroom
 
+
+#
+# Load pile for dotenv/bot global variables.
+#
 load_dotenv()
-TOKEN = os.getenv('DISCORD_TOKEN')
-GUILD_ID = os.getenv('GUILD_ID')
 
-SCHOOL = os.getenv('SCHOOL')
-JUDGES = os.getenv('JUDGES').split(',')
+# Discord
+discord_token = os.getenv('DISCORD_TOKEN')
+discord_guild_id = os.getenv('DISCORD_GUILD_ID')
+discord_active_channel_id = None
+discord_blasting = False
 
-DEBUG = int(os.getenv('DEBUG'))
+# School config
+school_name = os.getenv('SCHOOL_NAME')
+school_judges = os.getenv('SCHOOL_JUDGES').split(',')
 
-Pairings = pairings.PairingsManager()
-
-client = discord.Client(intents=discord.Intents.all(),
-                        status=discord.Status.idle,
-                        activity=discord.Activity(type=discord.ActivityType.watching,
-                                                  name="pairings  |  /help"))
-tree = app_commands.CommandTree(client)
-activeGuild = discord.Object(id=GUILD_ID)
-
+# Tournament config
+tournament_tourn_id = None
+tournament_events_id = []
+tournament_events_name = []
+tournament_prev_data = []
 
 
-@client.event
+#
+# Bot setup proper.
+#
+bot = discord.Bot(intents=discord.Intents.all(),
+                  status=discord.Status.idle,
+                  activity=discord.Activity(type=discord.ActivityType.watching,
+                                            name="pairings  |  /help",
+                                            )
+                  )
+
+@bot.event
 async def on_ready():
-    if DEBUG:
-        print('[DEBUG] Debug is on.')
-    print(f'Logged in as {client.user} (ID: {client.user.id})')
-    print("Loading commands...")
-    await tree.sync(guild=activeGuild)
-    print("Starting blast handler...")
-    blastHandler.start()
-    print("Loaded!")
-    print("---------------------------------------------------------")
+    print(f'Logged in as {bot.user} (ID: {bot.user.id})')
+    print(f'Starting blast handler...')
+    blast_handler.start()
+    print('Ready!')
+    print('------')
 
 
-
-@tree.command(name="help",
-              description="Displays all commands for PairingsBot.",
-              guild=activeGuild)
-async def pairingsHelp(interaction):
-    commands = [("/help",                       "Displays all commands for PairingsBot."),
-                ("/configure <tournament-url>", "Sets the tournament to blast pairings from and the event in the current channel."),
-                ("/pairings",                   "Posts the pairings from the most recent round for all teams."),
-                ("/pairings <team-code>",       "Post the pairings from the most recent round for a specific team."),
-                ("/startblasts",                "Start tournament blasts."),
-                ("/stopblasts",                 "Stop tournament blasts.")]
-
-    embed = discord.Embed(title="Commands",
-                          timestamp=datetime.datetime.now(datetime.timezone.utc),
-                          color=0x4E2A84)
-    embed.set_footer(text="PairingsBot made by @Golf0ned")
-    
-    for i in range(len(commands)):
-        embed.add_field(name=commands[i][0], value=commands[i][1], inline=False)
-
-    await interaction.response.send_message(embed=embed, ephemeral=True)
-
-
-
-@tree.command(name="configure",
-              description="Sets the tournament and event to blast pairings from in the current channel.",
-              guild=activeGuild)
-async def configure(interaction, url : str):
-    # filter url first. a bit hacky but im tired
-    try:
-        split = url.replace('&', '=').split('=')
-        tournID, eventID = split[1], split[3]
-        if not tournament.isValidEvent(tournID, eventID): raise Exception()
-    except:
-        await interaction.response.send_message(f'Invalid URL ({url}). :sweat:', ephemeral=True)
+#
+# Bot commands.
+#
+@bot.slash_command(name="configure",
+                   description="Sets the tournament to blast pairings from in the current channel.",
+                   guild_ids=[discord_guild_id])
+async def configure(ctx, url: str):
+    # url format: https://www.tabroom.com/index/tourn/index.mhtml?tourn_id=<TOURN_ID>
+    split_url = url.split('=')
+    if split_url[0] != 'https://www.tabroom.com/index/tourn/index.mhtml?tourn_id':
+        await ctx.respond('Invalid URL format. Please provide a Tabroom invite URL.')
         return
 
-    # actual config stuff
-    channelid = interaction.channel_id
-    Pairings.setSchool(SCHOOL)
-    Pairings.setJudges(JUDGES)
-    Pairings.setBlastChannel(channelid)
-    Pairings.initTournament(tournID, eventID)
-    await interaction.response.send_message(f'Tournament configured! :trophy:\n(Tournament ID: **{tournID}**, Event ID: **{eventID}**)', ephemeral = True)
-
-
-
-@tree.command(name="pairings", description="Post the pairings from the most recent round (for a specific team, if specified).", guild=activeGuild)
-async def pairings(interaction, team : typing.Optional[str]):
-    await blast(interaction, team)
-
-
-
-@tree.command(name="startblasts", description="Start tournament blasts.", guild=activeGuild)
-async def startBlasts(interaction):
-    print("Starting blasts.")
-    if Pairings.isBlasting():
-        await interaction.response.send_message('Blasts already started! :nerd:', ephemeral=True)
+    tourn_id = split_url[1] # Local, so invalid doesn't affect global
+    if not tabroom.is_valid_tournament(tourn_id):
+        await ctx.respond('Invalid tournament. Please check the URL and try again.')
         return
-    if not isValidChannel(Pairings.getBlastChannel()):
-        await interaction.response.send_message('Tournament not configured. :sob:', ephemeral=True)
+   
+    global discord_active_channel_id, tournament_tourn_id, tournament_events_id, tournament_events_name, tournament_prev_data
+
+    discord_active_channel_id = ctx.channel_id
+    tournament_tourn_id = tourn_id
+    (tournament_events_id, tournament_events_name) = tabroom.get_events(tourn_id)
+    tournament_prev_data = [[] for _ in tournament_events_id]
+
+    await ctx.respond(f'Tournament configured to send pairings in {ctx.channel.mention}! :trophy:\n(Tournament ID: {tournament_tourn_id})')
+
+
+@bot.slash_command(name="startblasts",
+                   description="Starts tournament blasts.",
+                   guild_ids=[discord_guild_id])
+async def start_blasts(ctx):
+    global discord_blasting
+    if discord_blasting:
+        await ctx.respond('Blasts already started! :nerd:')
         return
-    Pairings.startBlasting()
-    await client.change_presence(status=discord.Status.online,
-                                 activity=discord.Activity(type=discord.ActivityType.watching,
-                                                           name="pairings  |  /help"))
-    await interaction.response.send_message('Started blasts. :loud_sound:', ephemeral=True)
-
-
-
-@tree.command(name="stopblasts", description="Stop tournament blasts.", guild=activeGuild)
-async def stopBlasts(interaction):
-    print("Stopping blasts.")
-    if not Pairings.isBlasting():
-        await interaction.response.send_message('Blasts are already off! :nerd:', ephemeral=True)
+    if not tournament_tourn_id:
+        await ctx.respond('Tournament not configured. :sob:')
         return
-    Pairings.stopBlasting()
-    await client.change_presence(status=discord.Status.idle,
-                                 activity=discord.Activity(type=discord.ActivityType.watching,
-                                                           name="pairings  |  /help"))
-    await interaction.response.send_message('Stopped blasts. :mute:', ephemeral=True)
+    discord_blasting = True
+    await bot.change_presence(status=discord.Status.online,
+                              activity=discord.Activity(type=discord.ActivityType.watching,
+                                                        name="pairings  |  /help",
+                                                        )
+                              )
+    await ctx.respond('Blasting started! :loud_sound:')
 
 
-@tasks.loop(seconds=8)
-async def blastHandler():
-    if Pairings.isBlasting() and Pairings.hasTournament():
-        Pairings.checkForRound()
-        if Pairings.hasBlast():
-            print("Received blast!")
-            await blast(None, None)
-
-async def blast(interaction, team):
-    if interaction and not Pairings.hasTournament():
-        await interaction.response.send_message('Tournament isn\'t configured---use `/configure` first. :disappointed_relieved:', ephemeral=True)
+@bot.slash_command(name="stopblasts",
+                   description="Stops tournament blasts.",
+                   guild_ids=[discord_guild_id])
+async def stop_blasts(ctx):
+    global discord_blasting
+    if not discord_blasting:
+        await ctx.respond('Blasts already stopped! :nerd:')
         return
-    
-    roundInfo = Pairings.getRoundInfo()
-    # print(roundInfo)
-    if interaction and not roundInfo:
-        await interaction.response.send_message('Round isn\'t out yet. :yawning_face:', ephemeral=True)
-        return
-    
-    school = Pairings.getSchool()
-    roundNum = Pairings.getRoundNumber()
-    roundURL = Pairings.getRoundURL()
+    discord_blasting = False
+    await bot.change_presence(status=discord.Status.idle,
+                              activity=discord.Activity(type=discord.ActivityType.watching,
+                                                        name="pairings  |  /help",
+                                                        )
+                              )
+    await ctx.respond('Blasting stopped! :mute:')
 
-    debaterTeams = roundInfo[0][0]
-    debaterSides = roundInfo[0][1]
-    debaterOpponents = roundInfo[0][2]
-    debaterJudges = roundInfo[0][3]
-    debaterRooms = roundInfo[0][4]
 
-    judgeNames = roundInfo[1][0]
-    judgePanels = roundInfo[1][1]
-    judgeTeam1 = roundInfo[1][2]
-    judgeTeam2 = roundInfo[1][3]
-    judgeRooms = roundInfo[1][4]
+#
+# Blast handler.
+#
+@tasks.loop(seconds=10)
+async def blast_handler():
+    if discord_blasting and tournament_prev_data:
+        for i in range(len(tournament_prev_data)):
+            new_data = tabroom.get_pairings(tournament_tourn_id, tournament_events_id[i])
+            prev_data = tournament_prev_data[i]
+            cur_data = tabroom.filter_round_data(new_data[1], new_data[0], school_name, school_judges)
+            if cur_data[1] and tabroom.is_valid_blast(prev_data, cur_data):
+                tournament_prev_data[i] = cur_data
+                await blast_pairings(None, cur_data, tournament_events_name[i])
 
-    embed = discord.Embed(title="", url=roundURL,
-                          timestamp=datetime.datetime.now(datetime.timezone.utc),
-                          color=0x4E2A84)
-    
-    # All pairings
-    if not team:
-        embed.title = f'All Pairings (Round {roundNum})'
-        for i in range(len(debaterTeams)):
-            # basic team info
-            val = f'{debaterSides[i]} vs. [{debaterOpponents[i][0]}]({debaterOpponents[i][1]})\nJudge(s): '
-            # add each judge
-            for judge, paradigm in debaterJudges[i]:
-                val += f'[{judge}]({paradigm}), '
-            # remove awkward final comma
-            val = val[:-2]
-            # add room
-            val += f'\nRoom: {debaterRooms[i]}'
-            # add to embed
-            embed.add_field(name=f'{Pairings.getSchool()} {debaterTeams[i]}', value=val, inline=False)
-        for i in range(len(judgeNames)):
-            # competitors
-            val = f'{judgeTeam1[i]} vs. {judgeTeam2[i]}\n'
-            # rest of panel, if existent
-            if len(judgePanels[i]) != 1:
-                val += f'Panel: {", ".join(judge for judge in judgePanels[i])}\n'
-            # room
-            val += f'Room: {judgeRooms[i]}'
-            # add to embed
-            embed.add_field(name=f'[Judge] {judgeNames[i]}', value=val, inline=False)
 
-    # Specific team code
-    else:
-        index = validTeamCode(team, roundTeams)
-        if interaction and index < 0:
-            await interaction.response.send_message(f'{team} isn\'t a valid team code :pensive:', ephemeral=True)
+async def blast_pairings(ctx, data, event_name):
+    if not data or not data[1]: return
+    if ctx:
+        if not tournament_tourn_id:
+            await ctx.respond('No tournament configured. Please use /configure to set the tournament. :disappointed_relieved:')
             return
+        if not data:
+            await ctx.respond('No data to blast. :yawning_face:')
+            return
+    
+    # print(f'{event_name}: {data}')
 
-        embed.title = f'Pairing for {school} {team.upper()} (Round {roundNum})'
-        val = f'Judge(s): {roundJudges[index]}\nRoom: {roundRooms[index]}'
-        embed.add_field(name=f'{roundSides[index]} vs. {roundOpponents[index]}', value=val, inline=False)
-    
-    embed.set_footer(text=randomPairingsMessage())
-    
-    if interaction:
-        await interaction.response.send_message(embed=embed)
+    # It's embed building o'clock.
+    embed = discord.Embed(title=f'Pairings ({event_name}, Round {data[0][0]})',
+                          color=0x4E2A84,
+                          timestamp=datetime.datetime.now(),
+                          )
+    embed.set_footer(text=random_pairings_message())
+    for pairing in data[1][0]:
+        val = f'{pairing[1]} vs [{pairing[2][0]}]({pairing[2][1]})\nJudge(s): '
+        for judge, paradigm in pairing[3]:
+            val += f'[{judge}]({paradigm}), '
+        val = val[:-2]
+        val += f'\nRoom: {pairing[4]}'
+        embed.add_field(name=f'{school_name} {pairing[0]}',
+                        value=val,
+                        inline=False,
+                        )
+    for pairing in data[1][1]:
+        val = f'{pairing[2]} vs {pairing[3]}\nRoom: {pairing[4]}'
+        embed.add_field(name=f'JUDGE {pairing[0]}',
+                        value=val,
+                        inline=False,
+                        )
+
+    # Send formatted embed.
+    if ctx:
+        await ctx.respond(embed=embed)
     else:
-        channel = client.get_channel(int(Pairings.getBlastChannel()))
-        await channel.send(f'@everyone Pairings are out for round {roundNum}!')
+        channel = bot.get_channel(discord_active_channel_id)
         await channel.send(embed=embed)
 
 
-
-def isValidChannel(id : str):
-    try:
-        if not (client.get_channel(int(id))): raise Exception()
-    except:
-        return False
-    return True
-
-
-
-def validTeamCode(team, teams):
-    try:
-        index = teams.index(team.upper())
-    except:
-        try:    
-            index = teams.index(reverseCode(team).upper())
-        except:
-            return -1
-    return index
-
-def reverseCode(teamCode):
-    # TODO: error for teams of 3
-    return teamCode[::-1] if len(teamCode) == 2 else teamCode[2:4] + teamCode[0:2]
-
-
-
-def randomPairingsMessage():
-    messages = [
-                "Good luck!",
+#
+# Random message at bottom of embeds. For fun.
+#
+def random_pairings_message():
+    messages = ["Good luck!",
                 "Remember to stay hydrated!",
                 "Reminder to ingest caffeine!",
                 "\"Prompt disclosure, please.\"",
-                "Zoom zoom, go to room."
+                "Zoom zoom, go to room.",
                 ]
     return messages[random.randrange(len(messages))]
 
 
 
-if DEBUG:
-    @tree.command(name="quickconfig", description="Quick config for testing.", guild=activeGuild)
-    async def quickConfig(interaction):
-        school = 'Northwestern'
-        channelid = '1175658371257475163'
-        tournamentid = '29623'
-        eventid = '273562'
-
-        Pairings.setSchool(school)
-        Pairings.setBlastChannel(channelid)
-        Pairings.initTournament(tournamentid, eventid)
-        await interaction.response.send_message('[DEBUG] Quick configured!', ephemeral=True)
-        print(f'school: {school}\nchannelid: {channelid}\ntournamentid: {tournamentid}\neventid: {eventid}\n')
-
-    @tree.command(name="testblast", description="Test for blast received.", guild=activeGuild)
-    async def testBlast(interaction):
-        Pairings.testBlast()
-        await interaction.response.send_message('[DEBUG] Testing blast.', ephemeral=True)
-
-
-client.run(TOKEN)
+#
+# Client run lmao.
+#
+bot.run(discord_token)
