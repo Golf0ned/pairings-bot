@@ -122,12 +122,15 @@ async def stop_blasts(ctx):
 async def blast_handler():
     if discord_blasting and tournament_prev_data:
         for i in range(len(tournament_prev_data)):
-            new_data = tabroom.get_pairings(tournament_tourn_id, tournament_events_id[i])
-            prev_data = tournament_prev_data[i]
-            cur_data = tabroom.filter_round_data(new_data[1], new_data[0], school_name, school_judges)
-            if cur_data[1] and tabroom.is_valid_blast(prev_data, cur_data):
-                tournament_prev_data[i] = cur_data
-                await blast_pairings(None, cur_data, tournament_events_name[i])
+            try:
+                new_data = tabroom.get_pairings(tournament_tourn_id, tournament_events_id[i])
+                prev_data = tournament_prev_data[i]
+                cur_data = tabroom.filter_round_data(new_data[1], new_data[0], school_name, school_judges)
+                if cur_data[1] and tabroom.is_valid_blast(prev_data, cur_data):
+                    tournament_prev_data[i] = cur_data
+                    await blast_pairings(None, cur_data, tournament_events_name[i])
+            except Exception as e:
+                pass
 
 
 async def blast_pairings(ctx, data, event_name):
