@@ -174,10 +174,10 @@ def filter_round_data(data, round_number, school_name, school_judges):
 
 # This exists to avoid tabroom variance with blasts.
 def is_valid_blast(prev_data, cur_data):
-    if cur_data and cur_data[1] and not prev_data: return True
-    if prev_data == cur_data: return False
-    if not cur_data or not cur_data[1]: return False
-    if prev_data[0][1] > cur_data[0][1]: return False
+    if not cur_data or not cur_data[1]: return False   # Skip if empty (thanks tabroom!)
+    if not prev_data: return True                      # Assume valid if no data exists
+    if prev_data == cur_data: return False             # Skip if identical
+    if prev_data[0][1] > cur_data[0][1]: return False  # Old round
     return True
 
 
